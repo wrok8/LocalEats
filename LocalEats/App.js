@@ -7,6 +7,9 @@ import LoginRegister from "./Screens/LoginRegisterScreen";
 import LoginScreen from "./Screens/LoginScreen";
 import RegisterScreen from "./Screens/RegisterScreen";
 import RestaurantDetailScreen from "./Screens/RestaurantDetailScreen";
+import NearbyScreen from "./Screens/NearbyScreen";
+import TopRatedScreen from "./Screens/TopRatedScreen";
+
 
 /* BOTTOM TABS */
 import BottomTabs from "./navigation/BottomTabs";
@@ -53,6 +56,17 @@ export default function App() {
           name="RestaurantDetail"
           component={RestaurantDetailScreen}
         />
+
+        <Stack.Screen
+          name="NearbyScreen"
+          component={NearbyScreen}
+        />
+
+        <Stack.Screen
+          name="TopRatedScreen"
+          component={TopRatedScreen}
+/>
+
 
       </Stack.Navigator>
 

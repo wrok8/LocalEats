@@ -103,7 +103,8 @@ const styles = StyleSheet.create({
   map: { flex: 1 },
   cardContainer: {
     position: "absolute",
-    bottom: 20,
+    bottom: 50,
+    marginBottom:20,
     left: 16,
     right: 16
   },
@@ -111,7 +112,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 16,
     padding: 12,
-    marginBottom: 0,
+    marginBottom: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
@@ -120,7 +121,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: "100%",
-    height: 90,
+    height: 140,
     borderRadius: 12,
     marginBottom: 8
   },

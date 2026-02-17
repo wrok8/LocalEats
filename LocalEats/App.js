@@ -1,16 +1,25 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import LoginRegister from "./Screens/LoginRegisterScreen.js";
-import LoginScreen from "./Screens/LoginScreen.js";
-import RegisterScreen from "./Screens/RegisterScreen.js";
+import LoginRegister from "./Screens/LoginRegisterScreen";
+import LoginScreen from "./Screens/LoginScreen";
+import RegisterScreen from "./Screens/RegisterScreen";
+
+import HomeScreen from "./Screens/HomeScreen";
+import RestaurantDetailScreen from "./Screens/RestaurantDetailScreen";
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
+
   return (
+
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+
+      <Stack.Navigator
+        initialRouteName="Welcome"
+        screenOptions={{ headerShown: false }}
+      >
 
         <Stack.Screen
           name="Welcome"
@@ -27,7 +36,20 @@ export default function App() {
           component={RegisterScreen}
         />
 
+        <Stack.Screen
+          name="Home"
+          component={HomeScreen}
+        />
+
+        <Stack.Screen
+          name="RestaurantDetail"
+          component={RestaurantDetailScreen}
+        />
+
       </Stack.Navigator>
+
     </NavigationContainer>
+
   );
+
 }

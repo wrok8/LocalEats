@@ -41,7 +41,7 @@ export default function LoginScreen({ navigation }) {
         <Button
           title="Iniciar Sesion"
           variant="primary"
-          onPress={() => navigation.replace("Home")}
+          onPress={() => navigation.replace("MainTabs")}
         />
       </View>
 

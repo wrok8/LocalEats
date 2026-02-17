@@ -11,20 +11,16 @@ export const getNearbyRestaurants = async (lat, lng) => {
     const json = await response.json();
 
     return json.results.map(place => ({
+  id: place.place_id,
+  name: place.name,
+  rating: place.rating || 0,
+  address: place.vicinity,
+  image: place.photos
+    ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${place.photos[0].photo_reference}&key=${API_KEY}`
+    : null,
+  location: place.geometry?.location // <--- Aquí agregamos la lat/lng
+}));
 
-      id: place.place_id,
-
-      name: place.name,
-
-      rating: place.rating || 0,
-
-      address: place.vicinity,
-
-      image: place.photos
-        ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${place.photos[0].photo_reference}&key=${API_KEY}`
-        : null
-
-    }));
 
   } catch (error) {
 
@@ -33,5 +29,7 @@ export const getNearbyRestaurants = async (lat, lng) => {
     return [];
 
   }
+  
 
 };
+

@@ -38,20 +38,19 @@ export default function RestaurantDetailScreen({
 
 const styles = StyleSheet.create({
 
-  container: {
-
-    flex: 1,
-
-    padding: 20
-
+    cardContainer: {
+    position: "absolute",
+    bottom: 100,
+    marginBottom: 100,
+    left: 16,
+    right: 16
   },
+
 
   name: {
 
     fontSize: 24,
-
     fontWeight: "bold"
 
   }
-
 });

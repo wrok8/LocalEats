@@ -1,152 +1,117 @@
-import React from "react";
-
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  Image
+import React, { useState, useEffect } from "react";
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  ScrollView, 
+  Image, 
+  Dimensions 
 } from "react-native";
 
-import { Ionicons } from "@expo/vector-icons";
+const { width } = Dimensions.get("window");
 
-export default function RestaurantCardHorizontal({
-  item,
-  navigation
-}) {
+export default function RestaurantDetailScreen({ route }) {
+  const { restaurant } = route.params;
+  const [images, setImages] = useState([]);
+
+  useEffect(() => {
+    if (restaurant.image) {
+      setImages([restaurant.image]); // puedes agregar más si la API devuelve más fotos
+    }
+  }, [restaurant]);
 
   return (
-
-    <Pressable
-      style={styles.card}
-      onPress={() =>
-        navigation.navigate(
-          "RestaurantDetail",
-          { restaurant: item }
-        )
-      }
-    >
-
-      {/* IMAGEN */}
-      <Image
-        source={{
-          uri:
-            item.image ||
-            "https://via.placeholder.com/400x300.png?text=No+Image"
-        }}
-        style={styles.image}
-      />
-
-      {/* INFO */}
-      <View style={styles.infoContainer}>
-
-        {/* NOMBRE */}
-        <Text
-          style={styles.name}
-          numberOfLines={1}
-        >
-          {item.name}
-        </Text>
-
-        {/* UBICACION */}
-        <View style={styles.row}>
-
-          <Ionicons
-            name="location"
-            size={14}
-            color="#27AE60"
+    <ScrollView style={styles.container}>
+      {/* IMÁGENES DESLIZABLES */}
+      <ScrollView 
+        horizontal 
+        pagingEnabled 
+        showsHorizontalScrollIndicator={false}
+        style={styles.imageScroll}
+      >
+        {images.map((img, idx) => (
+          <Image 
+            key={idx} 
+            source={{ uri: img }} 
+            style={styles.image} 
           />
+        ))}
+      </ScrollView>
 
-          <Text
-            style={styles.address}
-            numberOfLines={1}
-          >
-            {item.address || "Sin dirección"}
-          </Text>
-
-        </View>
+      {/* INFO DEL RESTAURANTE */}
+      <View style={styles.infoContainer}>
+        <Text style={styles.name}>{restaurant.name}</Text>
 
         {/* ESTRELLAS */}
-        <View style={styles.row}>
+        <Text style={styles.rating}>
+          {"⭐".repeat(Math.floor(restaurant.rating))} {restaurant.rating?.toFixed(1)}
+        </Text>
 
-          <Ionicons
-            name="star"
-            size={14}
-            color="#FFD700"
-          />
+        {/* DESCRIPCIÓN */}
+        <Text style={styles.sectionTitle}>Description</Text>
+        <Text style={styles.description}>
+          {restaurant.vicinity || "No description available"}
+        </Text>
 
-          <Text style={styles.rating}>
-            {item.rating
-              ? item.rating.toFixed(1)
-              : "N/A"}
-          </Text>
-
+        {/* INSTALACIONES / SERVICES */}
+        <Text style={styles.sectionTitle}>Facilities</Text>
+        <View style={styles.facilitiesContainer}>
+          {restaurant.types?.map((type, idx) => (
+            <Text key={idx} style={styles.facility}>
+              ✔ {type}
+            </Text>
+          ))}
         </View>
-
       </View>
-
-    </Pressable>
-
+    </ScrollView>
   );
-
 }
 
 const styles = StyleSheet.create({
-
-  card: {
-
-    width: 220,
-    backgroundColor: "white",
-    borderRadius: 16,
-    marginRight: 16,
-    marginTop: 20,
-    marginBottom: 5,
-    overflow: "hidden",
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    shadowOffset: {
-      width: 0,
-      height: 2
-    }
+  container: {
+    flex: 1,
+    backgroundColor: "#fff"
   },
-
+  imageScroll: {
+    height: 250
+  },
   image: {
-    width: "100%",
-    height: 140
+    width: width,
+    height: 250,
+    resizeMode: "cover"
   },
-
   infoContainer: {
-    padding: 12
+    padding: 16
   },
-
   name: {
-
-    fontSize: 16,
+    fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 4
+    marginBottom: 8
   },
-
-  address: {
-
-    fontSize: 13,
-    color: "#666",
-    marginLeft: 4,
-    flex: 1
-  },
-
   rating: {
-
-    fontSize: 13,
-    marginLeft: 4,
-    fontWeight: "bold"
+    fontSize: 16,
+    color: "#f1c40f",
+    marginBottom: 16
   },
-
-  row: {
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginTop: 16,
+    marginBottom: 8
+  },
+  description: {
+    fontSize: 14,
+    color: "#555"
+  },
+  facilitiesContainer: {
     flexDirection: "row",
-    alignItems: "center",
-    marginTop: 2
+    flexWrap: "wrap",
+    marginTop: 8
+  },
+  facility: {
+    width: "50%",
+    fontSize: 14,
+    color: "#555",
+    marginBottom: 4
   }
-
 });

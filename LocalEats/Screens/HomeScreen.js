@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -8,217 +8,520 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  ImageBackground,
-  SafeAreaView
+  ImageBackground
 } from "react-native";
 
 import * as Location from "expo-location";
-import ImgTop from '../Components/ImageTop';
+import { SafeAreaView } from "react-native-safe-area-context";
 
+import ImgTop from "../Components/ImageTop";
 import { getNearbyRestaurants } from "../Services/PlacesApi";
 
 import RestaurantCardHorizontal from "../Components/RestaurantCardHorizontal";
 import RestaurantCardVertical from "../Components/RestaurantCardVertical";
 
 export default function HomeScreen({ navigation }) {
+
   const [restaurants, setRestaurants] = useState([]);
+  const [sortedRestaurants, setSortedRestaurants] = useState([]);
+  const [userLocation, setUserLocation] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const HORIZONTAL_LIMIT = 5; // solo mostrar 5 cercanos
-  const VERTICAL_LIMIT = 5;   // solo mostrar 5 mejores valorados
+  const [searchText, setSearchText] = useState("");
+  const [filteredRestaurants, setFilteredRestaurants] = useState([]);
+
+  /* =============================
+     CARGAR RESTAURANTES
+  ==============================*/
 
   useEffect(() => {
     loadRestaurants();
   }, []);
 
+  useEffect(() => {
+    if (userLocation && restaurants.length > 0) {
+      sortRestaurantsByDistance();
+    }
+  }, [userLocation, restaurants]);
+
+  /* =============================
+     FILTRO DE BUSQUEDA
+  ==============================*/
+
+  useEffect(() => {
+
+    if (!searchText.trim()) {
+
+      const topRated =
+        [...restaurants]
+          .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+          .slice(0, 5);
+
+      setFilteredRestaurants(topRated);
+
+      return;
+    }
+
+    const filtered = restaurants.filter(r => {
+
+      const name =
+        r.name?.toLowerCase() || "";
+
+      const address =
+        r.vicinity?.toLowerCase() || "";
+
+      const types =
+        r.types?.join(" ").toLowerCase() || "";
+
+      const search =
+        searchText.toLowerCase();
+
+      return (
+        name.includes(search) ||
+        address.includes(search) ||
+        types.includes(search)
+      );
+
+    });
+
+    setFilteredRestaurants(filtered);
+
+  }, [searchText, restaurants]);
+
+  /* =============================
+     OBTENER UBICACION Y API
+  ==============================*/
+
   async function loadRestaurants() {
+
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
+
+      const { status } =
+        await Location.requestForegroundPermissionsAsync();
+
       if (status !== "granted") {
+
         alert("Permiso de ubicación requerido");
         setLoading(false);
         return;
+
       }
 
-      const location = await Location.getCurrentPositionAsync({});
-      const data = await getNearbyRestaurants(
-        location.coords.latitude,
-        location.coords.longitude
+      const location =
+        await Location.getCurrentPositionAsync({});
+
+      const coords = {
+
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude
+
+      };
+
+      setUserLocation(coords);
+
+      const data =
+        await getNearbyRestaurants(
+          coords.latitude,
+          coords.longitude
+        );
+
+      setRestaurants(data);
+
+    } catch (error) {
+
+      console.log(error);
+
+    } finally {
+
+      setLoading(false);
+
+    }
+
+  }
+
+  /* =============================
+     CALCULAR DISTANCIA
+  ==============================*/
+
+  function getDistance(lat1, lon1, lat2, lon2) {
+
+    const R = 6371;
+
+    const dLat =
+      (lat2 - lat1) * Math.PI / 180;
+
+    const dLon =
+      (lon2 - lon1) * Math.PI / 180;
+
+    const a =
+      Math.sin(dLat / 2) *
+      Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) *
+      Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+
+    const c =
+      2 * Math.atan2(
+        Math.sqrt(a),
+        Math.sqrt(1 - a)
       );
 
-      // Agregamos distancia aproximada al usuario para filtrar más cercanos
-      const withDistance = data.map(r => ({
-        ...r,
-        distance: getDistance(
-          location.coords.latitude,
-          location.coords.longitude,
-          r.location?.lat,
-          r.location?.lng
-        )
-      }));
-
-      setRestaurants(withDistance);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  // Calcula distancia en metros
-  function getDistance(lat1, lng1, lat2, lng2) {
-    if (!lat2 || !lng2) return 99999;
-    const toRad = x => (x * Math.PI) / 180;
-    const R = 6371e3; // metros
-    const φ1 = toRad(lat1);
-    const φ2 = toRad(lat2);
-    const Δφ = toRad(lat2 - lat1);
-    const Δλ = toRad(lng2 - lng1);
-    const a =
-      Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-      Math.cos(φ1) * Math.cos(φ2) *
-      Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c;
+
   }
+
+  /* =============================
+     ORDENAR POR DISTANCIA
+  ==============================*/
+
+  function sortRestaurantsByDistance() {
+
+    const sorted =
+      restaurants
+        .map(r => {
+
+          if (!r.location) return r;
+
+          const distance =
+            getDistance(
+              userLocation.latitude,
+              userLocation.longitude,
+              r.location.lat,
+              r.location.lng
+            );
+
+          return {
+            ...r,
+            distance
+          };
+
+        })
+        .sort(
+          (a, b) =>
+            (a.distance || 0) -
+            (b.distance || 0)
+        );
+
+    setSortedRestaurants(sorted);
+
+  }
+
+  /* =============================
+     LOADING
+  ==============================*/
 
   if (loading) {
+
     return (
+
       <View style={styles.loading}>
-        <ActivityIndicator size="large" color="#27AE60" />
+
+        <ActivityIndicator
+          size="large"
+          color="#27AE60"
+        />
+
       </View>
+
     );
+
   }
 
-  // Restaurantes cercanos (ordenados por distancia)
-  const nearbyRestaurants = restaurants
-    .sort((a, b) => a.distance - b.distance)
-    .slice(0, HORIZONTAL_LIMIT);
+  /* =============================
+     LISTAS
+  ==============================*/
 
-  // Restaurantes top valorados
-  const topRatedRestaurants = [...restaurants]
-    .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-    .slice(0, VERTICAL_LIMIT);
+  const topRatedRestaurants =
+    [...restaurants]
+      .sort(
+        (a, b) =>
+          (b.rating || 0) -
+          (a.rating || 0)
+      )
+      .slice(0, 5);
+
+  const nearbyRestaurants =
+    sortedRestaurants.slice(0, 5);
+
+  /* =============================
+     UI
+  ==============================*/
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+
+    <SafeAreaView
+      style={styles.container}
+      edges={["bottom"]}
+    >
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingBottom: 80
+        }}
+      >
+
+        {/* HEADER */}
         <ImageBackground
           source={require("../assets/FondoInicio.png")}
           style={styles.background}
-          imageStyle={styles.backgroundImage}
         >
+
           <ImgTop title="Inicio" />
 
-          {/* SEARCH */}
+          {/* BUSCADOR */}
           <View style={styles.searchContainer}>
+
             <TextInput
               placeholder="¿Qué deseas comer?"
               placeholderTextColor="#999"
               style={styles.search}
+              value={searchText}
+              onChangeText={setSearchText}
             />
+
           </View>
 
           {/* CERCA DE TI */}
           <View style={styles.sectionCard}>
+
             <View style={styles.sectionTextContainer}>
-              <Text style={styles.sectionTitleWhite}>Cerca de ti</Text>
-              <Text style={styles.sectionSubtitleWhite}>
-                Los restaurantes más cercanos a ti
+
+              <Text style={styles.sectionTitleWhite}>
+                Cerca de ti
               </Text>
+
+              <Text style={styles.sectionSubtitleWhite}>
+                Los restaurantes más cercanos
+              </Text>
+
             </View>
 
             <TouchableOpacity
               style={styles.verMasButton}
               onPress={() =>
-                navigation.navigate("NearbyScreen", { restaurants })
+                navigation.navigate(
+                  "NearbyScreen",
+                  {
+                    restaurants:
+                      sortedRestaurants
+                  }
+                )
               }
             >
-              <Text style={styles.verMasButtonText}>Mirar más</Text>
+
+              <Text style={styles.verMasButtonText}>
+                Mirar más
+              </Text>
+
             </TouchableOpacity>
+
           </View>
 
-          {/* LISTA HORIZONTAL */}
+          {/* HORIZONTAL */}
           <FlatList
             horizontal
             data={nearbyRestaurants}
-            keyExtractor={(item) => item.id}
+            keyExtractor={item => item.id}
             renderItem={({ item }) => (
+
               <RestaurantCardHorizontal
                 item={item}
                 navigation={navigation}
               />
+
             )}
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingLeft: 16, paddingBottom: 20 }}
+            contentContainerStyle={{
+              paddingLeft: 16,
+              paddingBottom: 20
+            }}
           />
+
         </ImageBackground>
 
         {/* FILTROS */}
         <View style={styles.filtersContainer}>
+
           <FilterButton title="Precio" />
           <FilterButton title="Categoría" />
           <FilterButton title="Calificación" />
+
         </View>
 
-        {/* RESTAURANTES TOP */}
+        {/* HEADER RESTAURANTES */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Mejor Valorados</Text>
+
+          <Text style={styles.sectionTitle}>
+            Restaurantes
+          </Text>
 
           <TouchableOpacity
             onPress={() =>
-              navigation.navigate("TopRatedScreen", { restaurants })
+              navigation.navigate(
+                "TopRatedScreen",
+                { restaurants }
+              )
             }
           >
-            <Text style={styles.verMas}>Ver más</Text>
+
+            <Text style={styles.verMas}>
+              Ver más
+            </Text>
+
           </TouchableOpacity>
+
         </View>
 
-        {/* LISTA VERTICAL */}
+        {/* RESULTADOS */}
         <FlatList
-          data={topRatedRestaurants}
-          keyExtractor={(item) => item.id}
+          data={
+            searchText
+              ? filteredRestaurants
+              : topRatedRestaurants
+          }
+          keyExtractor={item => item.id}
           scrollEnabled={false}
           renderItem={({ item }) => (
+
             <RestaurantCardVertical
               item={item}
               navigation={navigation}
             />
+
           )}
-          contentContainerStyle={{ paddingHorizontal: 16 }}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingBottom: 20
+          }}
         />
+
       </ScrollView>
+
     </SafeAreaView>
+
   );
+
 }
 
+/* FILTRO */
 function FilterButton({ title }) {
+
   return (
+
     <TouchableOpacity style={styles.filterButton}>
-      <Text style={styles.filterText}>{title}</Text>
+
+      <Text style={styles.filterText}>
+        {title}
+      </Text>
+
     </TouchableOpacity>
+
   );
+
 }
 
+/* ESTILOS */
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f2f2f2" },
-  loading: { flex: 1, justifyContent: "center", alignItems: "center" },
-  searchContainer: { padding: 16 },
+
+  container: {
+    flex: 1,
+    backgroundColor: "#f2f2f2"
+  },
+
+  loading: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center"
+  },
+
+  searchContainer: {
+    padding: 16
+  },
+
   search: {
     backgroundColor: "white",
     padding: 14,
     borderRadius: 12,
     marginTop: 120,
-    fontSize: 16
+    fontSize: 16,
+    elevation: 3
   },
-  sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, marginTop: 0 },
-  sectionTitle: { fontSize: 18, fontWeight: "bold" },
-  sectionCard: { backgroundColor: "white", marginHorizontal: 16, marginTop: 0, padding: 16, borderRadius: 16, flexDirection: "row", justifyContent: "space-between", alignItems: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 4, elevation: 3 },
-  sectionTextContainer: { flex: 1 },
-  verMasButton: { backgroundColor: "#ffffff", paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 4, elevation: 3 },
-  verMasButtonText: { color: "#27AE60", fontWeight: "bold" },
-  filtersContainer: { flexDirection: "row", justifyContent: "space-around", marginVertical: 16 },
-  filterButton: { backgroundColor: "#ffffff", paddingVertical: 10, paddingHorizontal: 26, borderRadius: 20, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 4, elevation: 3 },
-  filterText: { color: "#27AE60", fontWeight: "bold" },
-  verMas: { color: "#27AE60", fontWeight: "bold" }
+
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16
+  },
+
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold"
+  },
+
+  sectionTitleWhite: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "black"
+  },
+
+  sectionSubtitleWhite: {
+    color: "gray",
+    fontSize: 13
+  },
+
+  verMas: {
+    color: "#27AE60",
+    fontWeight: "bold"
+  },
+
+  filtersContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginVertical: 16
+  },
+
+  filterButton: {
+    backgroundColor: "#fff",
+    paddingVertical: 10,
+    paddingHorizontal: 26,
+    borderRadius: 20,
+    elevation: 3
+  },
+
+  filterText: {
+    color: "#27AE60",
+    fontWeight: "bold"
+  },
+
+  sectionCard: {
+    backgroundColor: "white",
+    marginHorizontal: 16,
+    padding: 16,
+    borderRadius: 16,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    elevation: 3
+  },
+
+  sectionTextContainer: {
+    flex: 1
+  },
+
+  verMasButton: {
+    backgroundColor: "#fff",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    elevation: 3
+  },
+
+  verMasButtonText: {
+    color: "#27AE60",
+    fontWeight: "bold"
+  }
+
 });

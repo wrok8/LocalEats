@@ -6,14 +6,14 @@ const API_KEY = "AIzaSyB31oDUBv6iWG87Cco9YAju3MAKp01Tdqs";
  */
 export const getNearbyRestaurants = async (lat, lng) => {
   try {
-    // 1️⃣ Llamada a Nearby Search
+    // Nearby Search
     const response = await fetch(
       `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=3000&type=restaurant&key=${API_KEY}`
     );
 
     const json = await response.json();
 
-    // 2️⃣ Mapear los resultados y pedir detalles de cada lugar
+    // Mapear los resultados y pedir detalles de cada lugar
     const detailedRestaurants = await Promise.all(
       json.results.map(async (place) => {
         try {

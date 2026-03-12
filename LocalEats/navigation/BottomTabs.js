@@ -8,7 +8,7 @@ import ProfileScreen from "../Screens/ProfileScreen";
 
 const Tab = createBottomTabNavigator();
 
-// Animated Tab Icon
+// Animacion de icono
 function AnimatedTabIcon({ focused, activeIcon, inactiveIcon }) {
   const scale = useRef(new Animated.Value(1)).current;
   const opacity = useRef(new Animated.Value(focused ? 1 : 0.6)).current;

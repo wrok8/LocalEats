@@ -45,7 +45,7 @@ export default function App() {
           component={RegisterScreen}
         />
 
-        {/* Tabs principales (AQUI ESTA LA NAVBAR) */}
+        {/* Tabs principales*/}
         <Stack.Screen
           name="MainTabs"
           component={BottomTabs}

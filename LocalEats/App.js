@@ -3,13 +3,13 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 /* SCREENS */
+import SplashScreen from "./Screens/SplashScreen";
 import LoginRegister from "./Screens/LoginRegisterScreen";
 import LoginScreen from "./Screens/LoginScreen";
 import RegisterScreen from "./Screens/RegisterScreen";
 import RestaurantDetailScreen from "./Screens/RestaurantDetailScreen";
 import NearbyScreen from "./Screens/NearbyScreen";
 import TopRatedScreen from "./Screens/TopRatedScreen";
-
 
 /* BOTTOM TABS */
 import BottomTabs from "./navigation/BottomTabs";
@@ -23,9 +23,15 @@ export default function App() {
     <NavigationContainer>
 
       <Stack.Navigator
-        initialRouteName="Welcome"
+        initialRouteName="Splash"
         screenOptions={{ headerShown: false }}
       >
+
+        {/* Splash Screen */}
+        <Stack.Screen
+          name="Splash"
+          component={SplashScreen}
+        />
 
         {/* Pantalla inicial */}
         <Stack.Screen
@@ -65,8 +71,7 @@ export default function App() {
         <Stack.Screen
           name="TopRatedScreen"
           component={TopRatedScreen}
-/>
-
+        />
 
       </Stack.Navigator>
 

@@ -1,14 +1,50 @@
 import { StatusBar } from 'expo-status-bar';
 import Checkbox from 'expo-checkbox';
-import { StyleSheet, View, Text, Pressable, Dimensions } from 'react-native';
-const { width, height } = Dimensions.get("window");
-import { useState } from 'react';
+import { StyleSheet, View, Text, Pressable, Dimensions, Alert } from 'react-native';
+const { width } = Dimensions.get("window");
+
 import Svg, { Path, Circle } from "react-native-svg";
 import Button from '../Components/Button';
 import ImgTop from '../Components/ImageTop';
 import AppTextInput from '../Components/TextTittle';
 
+import { useState } from "react";
+
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebaseConfig";
+
 export default function LoginScreen({ navigation }) {
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const loginUser = async () => {
+
+    if (!email || !password) {
+      Alert.alert("Error", "Ingresa correo y contraseña");
+      return;
+    }
+
+    try {
+
+      await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      navigation.replace("MainTabs");
+
+    } catch (error) {
+
+  console.log("Firebase error:", error.code);
+  console.log("Mensaje:", error.message);
+
+  Alert.alert("Error", error.code);
+
+}
+
+  };
 
   return (
     <View style={styles.mainContainer}>
@@ -20,12 +56,16 @@ export default function LoginScreen({ navigation }) {
         <AppTextInput
           label="Correo"
           placeholder="Ingresa tu correo"
+          value={email}
+          onChangeText={setEmail}
         />
 
         <AppTextInput
           label="Contraseña"
           placeholder="Ingresa tu contraseña"
           secureTextEntry
+          value={password}
+          onChangeText={setPassword}
         />
       </View>
 
@@ -41,16 +81,16 @@ export default function LoginScreen({ navigation }) {
         <Button
           title="Iniciar Sesion"
           variant="primary"
-          onPress={() => navigation.replace("MainTabs")}
+          onPress={loginUser}
         />
       </View>
 
-    {/* Línea decorativa */}
-          <View style={styles.lineContainer}>
-            <SvgLineal />
-          </View>
-    
-          <StatusBar style="light" />
+      {/* Línea decorativa */}
+      <View style={styles.lineContainer}>
+        <SvgLineal />
+      </View>
+
+      <StatusBar style="light" />
     </View>
   );
 }
@@ -64,7 +104,6 @@ function AppCheckBox({ onForgotPress }) {
   return (
     <View style={styles.rowContainer}>
 
-      {/* IZQUIERDA */}
       <View style={styles.leftContainer}>
 
         <Checkbox
@@ -80,40 +119,38 @@ function AppCheckBox({ onForgotPress }) {
 
       </View>
 
-      {/* Recuperar Contraseña */}
       <Pressable onPress={onForgotPress}>
         <Text style={styles.forgotText}>
           ¿Olvidaste la contraseña?
         </Text>
       </Pressable>
+
     </View>
   );
 }
 
+
 function SvgLineal() {
-    return (
-      <Svg
-        width={width * 0.9}
-        height={24}
-      >
-        <Path
-          stroke="#575757"
-          strokeWidth="1"
-          d={`M0 12 H${width*0.45 - 10}`}
-        />
-        <Circle
-          cx={width*0.45}
-          cy="12"
-          r="6"
-          fill="#27AE60"
-        />
-        <Path
-          stroke="#575757"
-          strokeWidth="1"
-          d={`M${width*0.45 + 10} 12 H${width*0.9}`}
-        />
-      </Svg>
-    );
+  return (
+    <Svg width={width * 0.9} height={24}>
+      <Path
+        stroke="#575757"
+        strokeWidth="1"
+        d={`M0 12 H${width*0.45 - 10}`}
+      />
+      <Circle
+        cx={width*0.45}
+        cy="12"
+        r="6"
+        fill="#27AE60"
+      />
+      <Path
+        stroke="#575757"
+        strokeWidth="1"
+        d={`M${width*0.45 + 10} 12 H${width*0.9}`}
+      />
+    </Svg>
+  );
 }
 
 

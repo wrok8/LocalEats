@@ -5,18 +5,23 @@ export default function AppTextInput({
   placeholder,
   label,
   style,
-  })
-  {
+  value,
+  onChangeText,
+  secureTextEntry
+}) {
+
   return (
     <View style={styles.container}>
 
-      {/* Texto arriba */}
       {label && <Text style={styles.label}>{label}</Text>}
 
-      {/* Input */}
       <TextInput
         placeholder={placeholder}
         style={[styles.input, style]}
+        value={value}
+        onChangeText={onChangeText}
+        secureTextEntry={secureTextEntry}
+        autoCapitalize="none"
       />
 
     </View>
@@ -34,7 +39,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#333",
     marginBottom: 5,
-    alignSelf: "flex-start", // izquierda
+    alignSelf: "flex-start",
     fontWeight: "500",
   },
 

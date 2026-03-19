@@ -8,15 +8,38 @@ import Button from '../Components/Button';
 import ImgTop from '../Components/ImageTop';
 import AppTextInput from '../Components/TextTittle';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebaseConfig";
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen({ navigation }) {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+
+
+  useEffect(() => {
+    const checkLogin = async () => {
+      const savedEmail = await AsyncStorage.getItem("userEmail");
+      const savedPassword = await AsyncStorage.getItem("userPassword");
+
+      if (savedEmail && savedPassword) {
+        try {
+          await signInWithEmailAndPassword(auth, savedEmail, savedPassword);
+          navigation.replace("MainTabs");
+        } catch (error) {
+          console.log("Auto login falló");
+        }
+      }
+    };
+
+    checkLogin();
+  }, []);
+
 
   const loginUser = async () => {
 
@@ -27,23 +50,22 @@ export default function LoginScreen({ navigation }) {
 
     try {
 
-      await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      await signInWithEmailAndPassword(auth, email, password);
+
+      if (rememberMe) {
+        await AsyncStorage.setItem("userEmail", email);
+        await AsyncStorage.setItem("userPassword", password);
+      } else {
+        await AsyncStorage.removeItem("userEmail");
+        await AsyncStorage.removeItem("userPassword");
+      }
 
       navigation.replace("MainTabs");
 
     } catch (error) {
-
-  console.log("Firebase error:", error.code);
-  console.log("Mensaje:", error.message);
-
-  Alert.alert("Error", error.code);
-
-}
-
+      console.log("Firebase error:", error.code);
+      Alert.alert("Error", error.code);
+    }
   };
 
   return (
@@ -69,9 +91,11 @@ export default function LoginScreen({ navigation }) {
         />
       </View>
 
-      {/* Checkbox + Olvide la contraseña */}
+      {/* Checkbox */}
       <View style={styles.CheckboxContainer}>
         <AppCheckBox
+          isChecked={rememberMe}
+          setChecked={setRememberMe}
           onForgotPress={() => navigation.navigate("RecuperarContraseña")}
         />
       </View>
@@ -85,7 +109,7 @@ export default function LoginScreen({ navigation }) {
         />
       </View>
 
-      {/* Línea decorativa */}
+      {/* Línea */}
       <View style={styles.lineContainer}>
         <SvgLineal />
       </View>
@@ -96,27 +120,22 @@ export default function LoginScreen({ navigation }) {
 }
 
 
-/* COMPONENTE CHECKBOX */
-function AppCheckBox({ onForgotPress }) {
-
-  const [isChecked, setChecked] = useState(false);
+/* CHECKBOX */
+function AppCheckBox({ onForgotPress, isChecked, setChecked }) {
 
   return (
     <View style={styles.rowContainer}>
 
       <View style={styles.leftContainer}>
-
         <Checkbox
           style={styles.checkbox}
           value={isChecked}
           onValueChange={setChecked}
           color={isChecked ? '#27AE60' : undefined}
         />
-
         <Text style={styles.rememberText}>
           Recuérdame
         </Text>
-
       </View>
 
       <Pressable onPress={onForgotPress}>
@@ -130,25 +149,13 @@ function AppCheckBox({ onForgotPress }) {
 }
 
 
+/* LINEA SVG */
 function SvgLineal() {
   return (
     <Svg width={width * 0.9} height={24}>
-      <Path
-        stroke="#575757"
-        strokeWidth="1"
-        d={`M0 12 H${width*0.45 - 10}`}
-      />
-      <Circle
-        cx={width*0.45}
-        cy="12"
-        r="6"
-        fill="#27AE60"
-      />
-      <Path
-        stroke="#575757"
-        strokeWidth="1"
-        d={`M${width*0.45 + 10} 12 H${width*0.9}`}
-      />
+      <Path stroke="#575757" strokeWidth="1" d={`M0 12 H${width*0.45 - 10}`} />
+      <Circle cx={width*0.45} cy="12" r="6" fill="#27AE60" />
+      <Path stroke="#575757" strokeWidth="1" d={`M${width*0.45 + 10} 12 H${width*0.9}`} />
     </Svg>
   );
 }
@@ -156,11 +163,7 @@ function SvgLineal() {
 
 /* ESTILOS */
 const styles = StyleSheet.create({
-
-  mainContainer: {
-    flex: 1,
-    backgroundColor: "#f1f1f1",
-  },
+  mainContainer: { flex: 1, backgroundColor: "#f1f1f1" },
 
   contentContainer: {
     marginTop: 150,
@@ -180,44 +183,33 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
 
-
-  /* CONTENEDOR PRINCIPAL */
   rowContainer: {
     flexDirection: "row",
-    justifyContent: "space-between", // ← clave
+    justifyContent: "space-between",
     alignItems: "center",
   },
 
-
-  /* IZQUIERDA */
   leftContainer: {
     flexDirection: "row",
     alignItems: "center",
   },
 
-
-  checkbox: {
-    marginRight: 8,
-  },
-
+  checkbox: { marginRight: 8 },
 
   rememberText: {
     fontSize: 16,
     color: "#27AE60",
   },
 
-
-  /* DERECHA */
   forgotText: {
     fontSize: 14,
     color: "#27AE60",
     fontWeight: "500",
   },
 
-    lineContainer: {
+  lineContainer: {
     width: "100%",
     alignItems: "center",
     marginTop: 30,
   },
-
 });

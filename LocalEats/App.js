@@ -10,8 +10,9 @@ import RegisterScreen from "./Screens/RegisterScreen";
 import RestaurantDetailScreen from "./Screens/RestaurantDetailScreen";
 import NearbyScreen from "./Screens/NearbyScreen";
 import TopRatedScreen from "./Screens/TopRatedScreen";
+import PreferencesScreen from "./Screens/PreferencesScreen";
 
-/* BOTTOM TABS */
+/* TABS */
 import BottomTabs from "./navigation/BottomTabs";
 
 const Stack = createNativeStackNavigator();
@@ -19,7 +20,6 @@ const Stack = createNativeStackNavigator();
 export default function App() {
 
   return (
-
     <NavigationContainer>
 
       <Stack.Navigator
@@ -27,56 +27,23 @@ export default function App() {
         screenOptions={{ headerShown: false }}
       >
 
-        {/* Splash Screen */}
-        <Stack.Screen
-          name="Splash"
-          component={SplashScreen}
-        />
+        <Stack.Screen name="Splash" component={SplashScreen} />
+        <Stack.Screen name="Welcome" component={LoginRegister} />
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Register" component={RegisterScreen} />
 
-        {/* Pantalla inicial */}
-        <Stack.Screen
-          name="Welcome"
-          component={LoginRegister}
-        />
+        {/* MAIN APP */}
+        <Stack.Screen name="MainTabs" component={BottomTabs} />
 
-        {/* Login */}
-        <Stack.Screen
-          name="Login"
-          component={LoginScreen}
-        />
+        {/* OTRAS */}
+        <Stack.Screen name="RestaurantDetail" component={RestaurantDetailScreen} />
+        <Stack.Screen name="NearbyScreen" component={NearbyScreen} />
+        <Stack.Screen name="TopRatedScreen" component={TopRatedScreen} />
 
-        {/* Registro */}
-        <Stack.Screen
-          name="Register"
-          component={RegisterScreen}
-        />
-
-        {/* Tabs principales*/}
-        <Stack.Screen
-          name="MainTabs"
-          component={BottomTabs}
-        />
-
-        {/* Detalle restaurante */}
-        <Stack.Screen
-          name="RestaurantDetail"
-          component={RestaurantDetailScreen}
-        />
-
-        <Stack.Screen
-          name="NearbyScreen"
-          component={NearbyScreen}
-        />
-
-        <Stack.Screen
-          name="TopRatedScreen"
-          component={TopRatedScreen}
-        />
+        <Stack.Screen name="Preferences" component={PreferencesScreen} />
 
       </Stack.Navigator>
 
     </NavigationContainer>
-
   );
-
 }

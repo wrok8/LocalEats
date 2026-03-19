@@ -1,8 +1,21 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, Alert, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  Alert,
+  StyleSheet,
+  Dimensions
+} from "react-native";
+
+import Svg, { Path, Circle } from "react-native-svg";
+import Button from "../Components/Button";
+import ImgTop from "../Components/ImageTop";
+import AppTextInput from "../Components/TextTittle";
 
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebaseConfig";
+
+const { width } = Dimensions.get("window");
 
 export default function RegisterScreen({ navigation }) {
 
@@ -18,47 +31,69 @@ export default function RegisterScreen({ navigation }) {
 
     try {
 
-      await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      await createUserWithEmailAndPassword(auth, email, password);
 
       Alert.alert("Usuario registrado");
-
       navigation.replace("Login");
 
     } catch (error) {
-
       Alert.alert("Error", error.message);
-
     }
-
   };
 
   return (
 
-    <View style={styles.container}>
+    <View style={styles.mainContainer}>
 
-      <Text>Correo</Text>
-      <TextInput
-        style={styles.input}
-        value={email}
-        onChangeText={setEmail}
-      />
+      {/* HEADER */}
+      <ImgTop title="Crear Cuenta" />
 
-      <Text>Contraseña</Text>
-      <TextInput
-        style={styles.input}
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+      {/* INPUTS */}
+      <View style={styles.contentContainer}>
 
-      <Button
-        title="Registrarse"
-        onPress={registerUser}
-      />
+        <AppTextInput
+          label="Correo"
+          placeholder="Ingresa tu correo"
+          value={email}
+          onChangeText={setEmail}
+        />
+
+        <AppTextInput
+          label="Contraseña"
+          placeholder="Crea una contraseña"
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
+
+      </View>
+
+      {/* BOTÓN */}
+      <View style={styles.buttonContainer}>
+        <Button
+          title="Registrarse"
+          variant="primary"
+          onPress={registerUser}
+        />
+      </View>
+
+      {/* TEXTO LOGIN */}
+      <View style={styles.loginContainer}>
+        <Text style={styles.loginText}>
+          ¿Ya tienes cuenta?{" "}
+          <Text
+            style={styles.loginLink}
+            onPress={() => navigation.navigate("Login")}
+          >
+            Inicia sesión
+          </Text>
+        </Text>
+      </View>
+
+      {/* LINEA DECORATIVA */}
+      <View style={styles.lineContainer}>
+        <SvgLineal />
+      </View>
 
     </View>
 
@@ -66,18 +101,56 @@ export default function RegisterScreen({ navigation }) {
 
 }
 
+/* LINEA */
+function SvgLineal() {
+  return (
+    <Svg width={width * 0.9} height={24}>
+      <Path stroke="#575757" strokeWidth="1" d={`M0 12 H${width*0.45 - 10}`} />
+      <Circle cx={width*0.45} cy="12" r="6" fill="#27AE60" />
+      <Path stroke="#575757" strokeWidth="1" d={`M${width*0.45 + 10} 12 H${width*0.9}`} />
+    </Svg>
+  );
+}
+
+/* ESTILOS */
 const styles = StyleSheet.create({
 
-  container:{
-    flex:1,
-    justifyContent:"center",
-    padding:20
+  mainContainer: {
+    flex: 1,
+    backgroundColor: "#f1f1f1",
   },
 
-  input:{
-    borderWidth:1,
-    padding:10,
-    marginBottom:20
-  }
+  contentContainer: {
+    marginTop: 150,
+    width: "100%",
+    alignItems: "center",
+  },
+
+  buttonContainer: {
+    width: "100%",
+    alignItems: "center",
+    marginTop: 40,
+  },
+
+  loginContainer: {
+    marginTop: 20,
+    alignItems: "center",
+  },
+
+  loginText: {
+    fontSize: 14,
+    color: "#555",
+  },
+
+  loginLink: {
+    color: "#27AE60",
+    fontWeight: "bold",
+  },
+
+  lineContainer: {
+    width: "100%",
+    alignItems: "center",
+    marginTop: 30,
+  },
 
 });

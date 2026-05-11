@@ -130,6 +130,9 @@ export default function ProfileScreen({
   const isOwner =
     userData.role === "owner";
 
+    const isAdmin =
+  userData.role === "admin";
+
   return (
     <ScrollView
       style={styles.container}
@@ -302,6 +305,27 @@ export default function ProfileScreen({
           )}
         </View>
       )}
+      {/* ADMIN */}
+{isAdmin && (
+  <View style={styles.section}>
+    <Text style={styles.sectionTitle}>
+      Panel administrador
+    </Text>
+
+    <TouchableOpacity
+      style={styles.cardButton}
+      onPress={() =>
+        navigation.navigate(
+          "AdminRequests"
+        )
+      }
+    >
+      <Text style={styles.cardText}>
+        🛡 Aprobar restaurantes
+      </Text>
+    </TouchableOpacity>
+  </View>
+)}
 
       {/* RESUMEN */}
       {isOwner && (

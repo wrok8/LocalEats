@@ -30,7 +30,7 @@ export default function NearbyScreen({ navigation, route }) {
 
     const filtered = restaurants.filter(r =>
       r.name?.toLowerCase().includes(text.toLowerCase()) ||
-      r.vicinity?.toLowerCase().includes(text.toLowerCase())
+      (r.vicinity || r.address || "").toLowerCase().includes(text.toLowerCase())
     );
 
     setFilteredRestaurants(filtered);

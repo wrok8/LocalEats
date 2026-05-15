@@ -1,474 +1,583 @@
-import React, {
-  useEffect,
-  useState
-} from "react";
-
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
+  Alert,
   Image,
   ScrollView,
-  ActivityIndicator
+  ActivityIndicator,
+  ImageBackground,
+  Dimensions,
 } from "react-native";
 
-import { getAuth } from "firebase/auth";
+import { getAuth, signOut } from "firebase/auth";
 import {
   doc,
-  getDoc
+  getDoc,
+  updateDoc,
+  collection,
+  query,
+  where,
+  getDocs,
 } from "firebase/firestore";
-
 import { db } from "../firebaseConfig";
-
 import * as ImagePicker from "expo-image-picker";
-import { updateDoc} from "firebase/firestore";
+import { LinearGradient } from "expo-linear-gradient";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
-export default function ProfileScreen({
-  navigation
-}) {
-  const [userData, setUserData] =
-    useState(null);
+const { width } = Dimensions.get("window");
 
-  const [loading, setLoading] =
-    useState(true);
+/* =============================
+   ÍCONOS DE MENÚ
+==============================*/
+const ACCOUNT_MENU = [
+  { icon: "⭐", label: "Mis favoritos", screen: "Favorites", color: "#FFF3CD" },
+  { icon: "⚙️", label: "Configuración", screen: "Preferences", color: "#E8F4FD" },
+  { icon: "🏪", label: "Registrar restaurante", screen: "CreateRestaurant", color: "#E8F8F0" },
+];
+
+const OWNER_MENU = [
+  { icon: "🍽️", label: "Mi restaurante", screen: "MyRestaurant", color: "#E8F8F0" },
+  { icon: "✏️", label: "Editar información", screen: "EditRestaurant", color: "#FFF3CD" },
+  { icon: "📷", label: "Cambiar fotos", screen: "ChangePhotos", color: "#F0E6FF" },
+  { icon: "📊", label: "Estadísticas", screen: "Analytics", color: "#E8F4FD" },
+];
+
+export default function ProfileScreen({ navigation }) {
+  const [userData, setUserData] = useState(null);
+  const [ownerStats, setOwnerStats] = useState({
+    views: 0,
+    directionsClicks: 0,
+    favoritesCount: 0,
+    averageRating: 0,
+  });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const unsub = navigation.addListener("focus", () => {
+      loadUser();
+    });
+
     loadUser();
-  }, []);
+
+    return unsub;
+  }, [navigation]);
 
   async function pickProfileImage() {
-  const result =
-    await ImagePicker.launchImageLibraryAsync({
-      mediaTypes:
-        ImagePicker.MediaTypeOptions.Images,
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 1
+      quality: 1,
     });
 
-  if (!result.canceled) {
-    const imageUri = result.assets[0].uri;
-
-    const user = getAuth().currentUser;
-
-    await updateDoc(
-      doc(db, "users", user.uid),
-      {
-        photoURL: imageUri
-      }
-    );
-
-    setUserData({
-      ...userData,
-      photoURL: imageUri
-    });
+    if (!result.canceled) {
+      const imageUri = result.assets[0].uri;
+      const user = getAuth().currentUser;
+      await updateDoc(doc(db, "users", user.uid), { photoURL: imageUri });
+      setUserData({ ...userData, photoURL: imageUri });
+    }
   }
-}
 
-  async function loadUser() {
-    try {
-      const auth = getAuth();
+ async function loadUser() {
+  try {
+    const auth = getAuth();
       const user = auth.currentUser;
-
       if (!user) return;
 
-      const userRef = doc(
-        db,
-        "users",
-        user.uid
-      );
-
-      const userSnap =
-        await getDoc(userRef);
+      const userSnap = await getDoc(doc(db, "users", user.uid));
 
       if (userSnap.exists()) {
-        setUserData(
-          userSnap.data()
-        );
+        const data = userSnap.data();
+        setUserData(data);
+
+        if (data.role === "owner") {
+          await loadOwnerStats(user.uid);
+        }
       }
     } catch (error) {
-      console.log(
-        "Error cargando usuario:",
-        error
-      );
+      console.log("Error cargando usuario:", error);
     } finally {
       setLoading(false);
     }
   }
 
+  const handleLogout = () => {
+  Alert.alert(
+    "Cerrar sesión",
+    "¿Estás seguro de que quieres cerrar sesión?",
+    [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Cerrar sesión",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await signOut(getAuth());
+            await AsyncStorage.removeItem("userEmail");
+            await AsyncStorage.removeItem("userPassword");
+            navigation.replace("Login");
+          } catch (error) {
+            Alert.alert("Error", "No se pudo cerrar sesión");
+          }
+        },
+      },
+    ]
+  );
+};
+  
+    async function loadOwnerStats(uid) {
+    try {
+      const q = query(
+        collection(db, "restaurants"),
+        where("ownerId", "==", uid)
+      );
+
+      const snapshot = await getDocs(q);
+
+      let totalViews = 0;
+      let totalDirections = 0;
+      let totalFavorites = 0;
+      let ratingSum = 0;
+      let ratingCount = 0;
+
+      snapshot.docs.forEach((docItem) => {
+        const r = docItem.data();
+
+        totalViews += r.views || 0;
+        totalDirections += r.directionsClicks || 0;
+        totalFavorites += r.favoritesCount || 0;
+
+        const rating = r.averageRating || r.rating || 0;
+
+        if (rating > 0) {
+          ratingSum += rating;
+          ratingCount += 1;
+        }
+      });
+
+      setOwnerStats({
+        views: totalViews,
+        directionsClicks: totalDirections,
+        favoritesCount: totalFavorites,
+        averageRating:
+          ratingCount > 0 ? (ratingSum / ratingCount).toFixed(1) : "—",
+      });
+    } catch (error) {
+      console.log("Error cargando estadísticas owner:", error);
+    }
+  }
+
   if (loading) {
     return (
-      <View
-        style={
-          styles.loadingContainer
-        }
-      >
-        <ActivityIndicator
-          size="large"
-          color="#27AE60"
-        />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#27AE60" />
       </View>
     );
   }
 
   if (!userData) {
     return (
-      <View
-        style={
-          styles.loadingContainer
-        }
-      >
-        <Text>
-          No se pudo cargar el perfil
-        </Text>
+      <View style={styles.loadingContainer}>
+        <Text style={{ color: "#666" }}>No se pudo cargar el perfil</Text>
       </View>
     );
   }
 
-  const isOwner =
-    userData.role === "owner";
-
-    const isAdmin =
-  userData.role === "admin";
+  const isOwner = userData.role === "owner";
+  const isAdmin = userData.role === "admin";
 
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={{
-        paddingBottom: 40
-      }}
+      contentContainerStyle={{ paddingBottom: 60 }}
+      showsVerticalScrollIndicator={false}
     >
+      {/* ===== HEADER CON GRADIENTE ===== */}
+      <View style={styles.headerWrapper}>
+        <LinearGradient
+          colors={["#1A5C35", "#27AE60"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.headerGradient}
+        >
+          {/* Círculos decorativos */}
+          <View style={styles.decorCircle1} />
+          <View style={styles.decorCircle2} />
 
-      
-      {/* HEADER */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={pickProfileImage}>
-        <Image
-          source={{
-            uri:
-              userData.photoURL ||
-              "https://via.placeholder.com/120"
-          }}
-          style={styles.profileImage}
-        />
-      </TouchableOpacity>
+          {/* Foto de perfil */}
+          <TouchableOpacity
+            onPress={pickProfileImage}
+            style={styles.avatarWrapper}
+            activeOpacity={0.85}
+          >
+            <Image
+              source={{
+                uri: userData.photoURL || "https://via.placeholder.com/120",
+              }}
+              style={styles.profileImage}
+            />
+            <View style={styles.editAvatarBadge}>
+              <Text style={styles.editAvatarIcon}>📷</Text>
+            </View>
+          </TouchableOpacity>
 
-        <Text style={styles.name}>
-          {userData.name ||
-            "Usuario"}
-        </Text>
+          <Text style={styles.name}>{userData.name || "Usuario"}</Text>
+          <Text style={styles.email}>{userData.email}</Text>
 
-        <Text style={styles.email}>
-          {userData.email}
-        </Text>
+          {/* Badge de rol */}
+          <View style={styles.roleBadge}>
+            <Text style={styles.roleBadgeText}>
+              {isAdmin ? "🛡️ Administrador" : isOwner ? "🏪 Propietario" : "👤 Usuario"}
+            </Text>
+          </View>
+        </LinearGradient>
       </View>
 
-      {/* CUENTA */}
-      <View style={styles.section}>
-        <Text
-          style={
-            styles.sectionTitle
-          }
-        >
-          Mi cuenta
-        </Text>
+      {/* ===== RESUMEN RÁPIDO (owner) ===== */}
+      {isOwner && (
+        <View style={styles.statsRow}>
+          <StatCard icon="👁️" value={ownerStats.views} label="Vistas" />
+          <StatCard icon="📍" value={ownerStats.directionsClicks} label="Cómo llegar" />
+          <StatCard icon="❤️" value={ownerStats.favoritesCount} label="Favoritos" />
+          <StatCard icon="⭐" value={ownerStats.averageRating} label="Rating" />
+        </View>
+      )}
 
-        <TouchableOpacity
-          style={
-            styles.cardButton
-          }
-          onPress={() =>
-            navigation.navigate(
-              "Favorites"
-            )
-          }
-        >
-          <Text
-            style={
-              styles.cardText
-            }
-          >
-            ⭐ Mis favoritos
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={
-            styles.cardButton
-          }
-          onPress={() =>
-            navigation.navigate(
-              "Preferences"
-            )
-          }
-        >
-          <Text
-            style={
-              styles.cardText
-            }
-          >
-            ⚙ Configuración
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={
-            styles.cardButton
-          }
-          onPress={() =>
-            navigation.navigate(
-              "CreateRestaurant"
-            )
-          }
-        >
-          <Text
-            style={
-              styles.cardText
-            }
-          >
-            🏪 Registrar restaurante
-          </Text>
-        </TouchableOpacity>
+      {/* ===== MI CUENTA ===== */}
+      <SectionHeader title="Mi cuenta" />
+      <View style={styles.menuSection}>
+        {ACCOUNT_MENU.map((item, i) => (
+          <MenuRow
+            key={i}
+            item={item}
+            onPress={() => navigation.navigate(item.screen)}
+          />
+        ))}
       </View>
 
-      {/* OWNER */}
+      {/* ===== PANEL PROPIETARIO ===== */}
       {isOwner && (
-        <View
-          style={styles.section}
-        >
-          <Text
-            style={
-              styles.sectionTitle
-            }
-          >
-            Dashboard negocio
-          </Text>
-
-          {[
-            {
-              label:
-                "🍽 Mi restaurante",
-              screen:
-                "MyRestaurant"
-            },
-            {
-              label:
-                "✏ Editar info",
-              screen:
-                "EditRestaurant"
-            },
-            {
-              label:
-                "📷 Cambiar fotos",
-              screen:
-                "ChangePhotos"
-            },
-            {
-              label:
-                "🔥 Promociones",
-              screen:
-                "Promotions"
-            },
-            {
-              label:
-                "📊 Estadísticas",
-              screen:
-                "Analytics"
-            }
-          ].map(
-            (
-              item,
-              index
-            ) => (
-              <TouchableOpacity
-                key={index}
-                style={
-                  styles.cardButton
-                }
-                onPress={() =>
-                  navigation.navigate(
-                    item.screen
-                  )
-                }
-              >
-                <Text
-                  style={
-                    styles.cardText
-                  }
-                >
-                  {item.label}
-                </Text>
-              </TouchableOpacity>
-            )
-          )}
-        </View>
+        <>
+          <SectionHeader title="Dashboard negocio" />
+          <View style={styles.menuSection}>
+            {OWNER_MENU.map((item, i) => (
+              <MenuRow
+                key={i}
+                item={item}
+                onPress={() => navigation.navigate(item.screen)}
+              />
+            ))}
+          </View>
+        </>
       )}
-      {/* ADMIN */}
-{isAdmin && (
-  <View style={styles.section}>
-    <Text style={styles.sectionTitle}>
-      Panel administrador
-    </Text>
 
-    <TouchableOpacity
-      style={styles.cardButton}
-      onPress={() =>
-        navigation.navigate(
-          "AdminRequests"
-        )
-      }
-    >
-      <Text style={styles.cardText}>
-        🛡 Aprobar restaurantes
-      </Text>
-    </TouchableOpacity>
-  </View>
-)}
-
-      {/* RESUMEN */}
-      {isOwner && (
-        <View
-          style={
-            styles.analyticsBox
-          }
-        >
-          <Text
-            style={
-              styles.sectionTitle
-            }
-          >
-            Resumen rápido
-          </Text>
-
-          <Text
-            style={
-              styles.analyticsText
-            }
-          >
-            👁 Vistas:{" "}
-            {userData.views || 0}
-          </Text>
-
-          <Text
-            style={
-              styles.analyticsText
-            }
-          >
-            📍 Cómo llegar:{" "}
-            {userData.directionsClicks ||
-              0}
-          </Text>
-
-          <Text
-            style={
-              styles.analyticsText
-            }
-          >
-            ⭐ Favoritos:{" "}
-            {userData.favoritesCount ||
-              0}
-          </Text>
-
-          <Text
-            style={
-              styles.analyticsText
-            }
-          >
-            ⭐ Rating:{" "}
-            {userData.averageRating ||
-              "N/A"}
-          </Text>
-        </View>
+      {/* ===== PANEL ADMIN ===== */}
+      {isAdmin && (
+        <>
+          <SectionHeader title="Panel administrador" />
+          <View style={styles.menuSection}>
+            <MenuRow
+              item={{ icon: "🛡️", label: "Aprobar restaurantes", screen: "AdminRequests", color: "#FFE8E8" }}
+              onPress={() => navigation.navigate("AdminRequests")}
+            />
+          </View>
+        </>
       )}
+
+      {/* ===== CERRAR SESIÓN ===== */}
+      <View style={{ paddingHorizontal: 20, marginTop: 8 }}>
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={handleLogout}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.logoutText}>Cerrar sesión</Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 }
 
-const styles =
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor:
-        "#f7f7f7"
-    },
+/* =============================
+   SUBCOMPONENTES
+==============================*/
 
-    loadingContainer: {
-      flex: 1,
-      justifyContent:
-        "center",
-      alignItems:
-        "center"
-    },
+function SectionHeader({ title }) {
+  return (
+    <View style={styles.sectionHeaderRow}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      <View style={styles.sectionLine} />
+    </View>
+  );
+}
 
-    header: {
-      alignItems:
-        "center",
-      paddingTop: 50,
-      paddingBottom: 30,
-      backgroundColor:
-        "#fff",
-      marginBottom: 20
-    },
+function MenuRow({ item, onPress }) {
+  return (
+    <TouchableOpacity
+      style={styles.menuRow}
+      onPress={onPress}
+      activeOpacity={0.75}
+    >
+      <View style={[styles.menuIconBg, { backgroundColor: item.color }]}>
+        <Text style={styles.menuIcon}>{item.icon}</Text>
+      </View>
+      <Text style={styles.menuLabel}>{item.label}</Text>
+      <Text style={styles.menuArrow}>›</Text>
+    </TouchableOpacity>
+  );
+}
 
-    profileImage: {
-      width: 110,
-      height: 110,
-      borderRadius: 55,
-      marginBottom: 16
-    },
+function StatCard({ icon, value, label }) {
+  return (
+    <View style={styles.statCard}>
+      <Text style={styles.statIcon}>{icon}</Text>
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
+}
 
-    name: {
-      fontSize: 24,
-      fontWeight:
-        "bold"
-    },
+/* =============================
+   ESTILOS
+==============================*/
 
-    email: {
-      fontSize: 14,
-      color: "#777",
-      marginTop: 4
-    },
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F4F6F4",
+  },
 
-    section: {
-      paddingHorizontal: 20,
-      marginBottom: 24
-    },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F4F6F4",
+  },
 
-    sectionTitle: {
-      fontSize: 18,
-      fontWeight:
-        "bold",
-      marginBottom: 12
-    },
+  /* HEADER */
+  headerWrapper: {
+    marginBottom: 0,
+  },
 
-    cardButton: {
-      backgroundColor:
-        "#fff",
-      padding: 18,
-      borderRadius: 16,
-      marginBottom: 12,
-      elevation: 3
-    },
+  headerGradient: {
+    alignItems: "center",
+    paddingTop: 60,
+    paddingBottom: 36,
+    overflow: "hidden",
+    position: "relative",
+  },
 
-    cardText: {
-      fontSize: 16,
-      fontWeight:
-        "600"
-    },
+  decorCircle1: {
+    position: "absolute",
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    top: -60,
+    right: -50,
+  },
 
-    analyticsBox: {
-      marginHorizontal: 20,
-      backgroundColor:
-        "#fff",
-      padding: 20,
-      borderRadius: 16,
-      elevation: 3
-    },
+  decorCircle2: {
+    position: "absolute",
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    bottom: -40,
+    left: -30,
+  },
 
-    analyticsText: {
-      fontSize: 16,
-      marginBottom: 8
-    }
-  });
+  avatarWrapper: {
+    position: "relative",
+    marginBottom: 14,
+  },
+
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 3,
+    borderColor: "rgba(255,255,255,0.7)",
+  },
+
+  editAvatarBadge: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 3,
+  },
+
+  editAvatarIcon: {
+    fontSize: 14,
+  },
+
+  name: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#fff",
+    letterSpacing: 0.3,
+  },
+
+  email: {
+    fontSize: 13,
+    color: "rgba(255,255,255,0.75)",
+    marginTop: 3,
+    marginBottom: 12,
+  },
+
+  roleBadge: {
+    backgroundColor: "rgba(255,255,255,0.18)",
+    paddingHorizontal: 14,
+    paddingVertical: 5,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.3)",
+  },
+
+  roleBadgeText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+
+  /* STATS */
+  statsRow: {
+    flexDirection: "row",
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    gap: 8,
+    backgroundColor: "#fff",
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    elevation: 4,
+    shadowColor: "#27AE60",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    marginBottom: 20,
+  },
+
+  statCard: {
+    flex: 1,
+    alignItems: "center",
+    backgroundColor: "#F4F6F4",
+    borderRadius: 14,
+    paddingVertical: 10,
+  },
+
+  statIcon: {
+    fontSize: 18,
+    marginBottom: 2,
+  },
+
+  statValue: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#27AE60",
+  },
+
+  statLabel: {
+    fontSize: 10,
+    color: "#888",
+    marginTop: 2,
+    textAlign: "center",
+  },
+
+  /* SECCIÓN */
+  sectionHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    marginBottom: 10,
+    marginTop: 4,
+  },
+
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#444",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    marginRight: 10,
+  },
+
+  sectionLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#E0E0E0",
+  },
+
+  menuSection: {
+    backgroundColor: "#fff",
+    marginHorizontal: 16,
+    borderRadius: 20,
+    overflow: "hidden",
+    marginBottom: 20,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 6,
+  },
+
+  menuRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+  },
+
+  menuIconBg: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 14,
+  },
+
+  menuIcon: {
+    fontSize: 18,
+  },
+
+  menuLabel: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#222",
+  },
+
+  menuArrow: {
+    fontSize: 22,
+    color: "#CCC",
+    fontWeight: "300",
+  },
+
+  /* LOGOUT */
+  logoutButton: {
+    borderWidth: 1.5,
+    borderColor: "#E74C3C",
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+
+  logoutText: {
+    color: "#E74C3C",
+    fontWeight: "700",
+    fontSize: 15,
+  },
+});

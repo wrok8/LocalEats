@@ -7,350 +7,386 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
-  Alert
+  Alert,
+  Dimensions,
 } from "react-native";
 
 import { getAuth } from "firebase/auth";
-
 import {
   collection,
   getDocs,
   doc,
-  deleteDoc
+  deleteDoc,
+  updateDoc,
+  increment,
 } from "firebase/firestore";
-
 import { db } from "../firebaseConfig";
+import { LinearGradient } from "expo-linear-gradient";
 
-export default function FavoritesScreen({
-  navigation
-}) {
-  const [favorites, setFavorites] =
-    useState([]);
+const { width } = Dimensions.get("window");
+const GREEN = "#27AE60";
+const DARK_GREEN = "#1A5C35";
 
-  const [loading, setLoading] =
-    useState(true);
+export default function FavoritesScreen({ navigation }) {
+  const [favorites, setFavorites] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadFavorites();
-
-    const unsubscribe =
-      navigation.addListener(
-        "focus",
-        () => {
-          loadFavorites();
-        }
-      );
-
-    return unsubscribe;
+    const unsub = navigation.addListener("focus", loadFavorites);
+    return unsub;
   }, [navigation]);
 
   async function loadFavorites() {
     try {
       setLoading(true);
-
-      const user =
-        getAuth().currentUser;
-
+      const user = getAuth().currentUser;
       if (!user) return;
 
-      const favoritesRef =
-        collection(
-          db,
-          "users",
-          user.uid,
-          "favorites"
-        );
-
-      const snapshot =
-        await getDocs(
-          favoritesRef
-        );
-
-      const data =
-        snapshot.docs.map(
-          (docItem) => ({
-            id: docItem.id,
-            ...docItem.data()
-          })
-        );
-
+      const snap = await getDocs(collection(db, "users", user.uid, "favorites"));
+      const data = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       setFavorites(data);
     } catch (error) {
-      console.log(
-        "Error cargando favoritos:",
-        error
-      );
+      console.log("Error cargando favoritos:", error);
     } finally {
       setLoading(false);
     }
   }
 
-  async function removeFavorite(
-    restaurantId
-  ) {
-    try {
-      const user =
-        getAuth().currentUser;
+  async function removeFavorite(restaurantId, name) {
+  Alert.alert(
+    "Quitar favorito",
+    `¿Quitar "${name}" de tus favoritos?`,
+    [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Quitar",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            const user = getAuth().currentUser;
+            if (!user) return;
 
-      if (!user) return;
+            await deleteDoc(
+              doc(db, "users", user.uid, "favorites", restaurantId)
+            );
 
-      await deleteDoc(
-        doc(
-          db,
-          "users",
-          user.uid,
-          "favorites",
-          restaurantId
-        )
-      );
-
-      setFavorites((prev) =>
-        prev.filter(
-          (item) =>
-            item.id !==
-            restaurantId
-        )
-      );
-
-      Alert.alert(
-        "Eliminado",
-        "Se quitó de favoritos"
-      );
-    } catch (error) {
-      console.log(
-        "Error eliminando favorito:",
-        error
-      );
-    }
-  }
-
-  function renderItem({
-    item
-  }) {
-    return (
-      <TouchableOpacity
-        style={styles.card}
-        onPress={() =>
-          navigation.navigate(
-            "RestaurantDetail",
-            {
-              restaurant:
-                item
+            try {
+              await updateDoc(doc(db, "restaurants", restaurantId), {
+                favoritesCount: increment(-1),
+              });
+            } catch (error) {
+              console.log("No se pudo restar contador:", error);
             }
-          )
-        }
-      >
-        {item.image && (
-          <Image
-            source={{
-              uri: item.image
-            }}
-            style={
-              styles.image
-            }
-          />
-        )}
 
-        <View
-          style={
-            styles.infoContainer
+            setFavorites((prev) =>
+              prev.filter((item) => item.id !== restaurantId)
+            );
+
+          } catch (error) {
+            console.log("Error eliminando:", error);
           }
-        >
-          <Text
-            style={
-              styles.name
-            }
-          >
-            {item.name}
-          </Text>
-
-          <Text
-            style={
-              styles.rating
-            }
-          >
-            ⭐{" "}
-            {item.rating ||
-              "N/A"}
-          </Text>
-
-          <Text
-            style={
-              styles.address
-            }
-          >
-            {item.address ||
-              "Sin dirección"}
-          </Text>
-
-          <TouchableOpacity
-            style={
-              styles.removeButton
-            }
-            onPress={() =>
-              removeFavorite(
-                item.id
-              )
-            }
-          >
-            <Text
-              style={
-                styles.removeText
-              }
-            >
-              ❌ Quitar
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
-    );
-  }
+        },
+      },
+    ]
+  );
+}
 
   if (loading) {
     return (
-      <View
-        style={
-          styles.loadingContainer
-        }
-      >
-        <ActivityIndicator
-          size="large"
-        />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={GREEN} />
       </View>
     );
   }
 
   return (
-    <View
-      style={
-        styles.container
-      }
-    >
-      <Text
-        style={styles.title}
+    <View style={styles.container}>
+      {/* HEADER */}
+      <LinearGradient
+        colors={[DARK_GREEN, GREEN]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.header}
       >
-        ❤️ Mis favoritos
-      </Text>
+        <View style={styles.decorCircle} />
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <Text style={styles.backBtnText}>‹</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>❤️ Mis favoritos</Text>
+        <Text style={styles.headerSub}>
+          {favorites.length > 0
+            ? `${favorites.length} restaurante${favorites.length !== 1 ? "s" : ""} guardado${favorites.length !== 1 ? "s" : ""}`
+            : "Aún no tienes favoritos"}
+        </Text>
+      </LinearGradient>
 
-      {favorites.length ===
-      0 ? (
-        <View
-          style={
-            styles.emptyContainer
-          }
-        >
-          <Text
-            style={
-              styles.emptyText
-            }
-          >
-            No tienes favoritos aún
+      {/* LISTA VACÍA */}
+      {favorites.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyIcon}>🍽️</Text>
+          <Text style={styles.emptyTitle}>Sin favoritos aún</Text>
+          <Text style={styles.emptyText}>
+            Explora restaurantes y guarda los que más te gusten tocando ❤️
           </Text>
+          <TouchableOpacity
+            style={styles.exploreButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.exploreButtonText}>Explorar restaurantes</Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <FlatList
           data={favorites}
-          keyExtractor={(
-            item
-          ) => item.id}
-          renderItem={
-            renderItem
-          }
-          contentContainerStyle={{
-            paddingBottom: 30
-          }}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item }) => (
+            <FavoriteCard
+              item={item}
+              onPress={() =>
+                navigation.navigate("RestaurantDetail", { restaurant: item })
+              }
+              onRemove={() => removeFavorite(item.id, item.name)}
+            />
+          )}
         />
       )}
     </View>
   );
 }
 
-const styles =
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor:
-        "#f7f7f7",
-      padding: 16
-    },
+/* =============================
+   TARJETA DE FAVORITO
+==============================*/
 
-    loadingContainer: {
-      flex: 1,
-      justifyContent:
-        "center",
-      alignItems:
-        "center"
-    },
+function FavoriteCard({ item, onPress, onRemove }) {
+  const ratingNum = parseFloat(item.rating) || 0;
 
-    title: {
-      fontSize: 24,
-      fontWeight:
-        "bold",
-      marginBottom: 20
-    },
+  return (
+    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.88}>
+      {/* IMAGEN */}
+      <View style={styles.imageWrapper}>
+        <Image
+          source={{
+            uri: item.image || "https://via.placeholder.com/400x200?text=Sin+foto",
+          }}
+          style={styles.cardImage}
+        />
 
-    emptyContainer: {
-      flex: 1,
-      justifyContent:
-        "center",
-      alignItems:
-        "center"
-    },
+        {/* BADGE RATING */}
+        <View style={styles.ratingBadge}>
+          <Text style={styles.ratingBadgeText}>⭐ {ratingNum > 0 ? ratingNum.toFixed(1) : "N/A"}</Text>
+        </View>
 
-    emptyText: {
-      fontSize: 16,
-      color: "#777"
-    },
+        {/* BOTÓN QUITAR */}
+        <TouchableOpacity style={styles.heartButton} onPress={onRemove} activeOpacity={0.8}>
+          <Text style={styles.heartIcon}>❤️</Text>
+        </TouchableOpacity>
+      </View>
 
-    card: {
-      backgroundColor:
-        "#fff",
-      borderRadius: 16,
-      marginBottom: 16,
-      elevation: 3,
-      overflow:
-        "hidden"
-    },
+      {/* INFO */}
+      <View style={styles.cardBody}>
+        <View style={styles.cardTop}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.cardName} numberOfLines={1}>{item.name}</Text>
+            <Text style={styles.cardAddress} numberOfLines={1}>
+              📍 {item.address || item.vicinity || "Sin dirección"}
+            </Text>
+          </View>
+        </View>
 
-    image: {
-      width: "100%",
-      height: 160
-    },
+        {/* TIPOS */}
+        {item.types && item.types.length > 0 && (
+          <View style={styles.typesRow}>
+            {item.types.slice(0, 3).map((t, i) => (
+              <View key={i} style={styles.typeChip}>
+                <Text style={styles.typeChipText}>{t}</Text>
+              </View>
+            ))}
+          </View>
+        )}
 
-    infoContainer: {
-      padding: 14
-    },
+        {/* ACCIONES */}
+        <View style={styles.cardActions}>
+          <TouchableOpacity style={styles.detailBtn} onPress={onPress}>
+            <Text style={styles.detailBtnText}>Ver detalles</Text>
+          </TouchableOpacity>
 
-    name: {
-      fontSize: 18,
-      fontWeight:
-        "bold"
-    },
+          <TouchableOpacity style={styles.removeBtn} onPress={onRemove}>
+            <Text style={styles.removeBtnText}>Quitar</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+}
 
-    rating: {
-      fontSize: 14,
-      marginTop: 4,
-      color: "#f1c40f"
-    },
+/* =============================
+   ESTILOS
+==============================*/
 
-    address: {
-      fontSize: 13,
-      marginTop: 6,
-      color: "#666"
-    },
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#F4F6F4" },
 
-    removeButton: {
-      marginTop: 12,
-      backgroundColor:
-        "#E74C3C",
-      padding: 10,
-      borderRadius: 10
-    },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F4F6F4",
+  },
 
-    removeText: {
-      color: "#fff",
-      textAlign: "center",
-      fontWeight:
-        "bold"
-    }
-  });
+  /* HEADER */
+  header: {
+    paddingTop: 60,
+    paddingBottom: 28,
+    paddingHorizontal: 20,
+    overflow: "hidden",
+    position: "relative",
+  },
+  decorCircle: {
+    position: "absolute",
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: "rgba(255,255,255,0.07)",
+    top: -40,
+    right: -40,
+  },
+  backBtn: {
+    position: "absolute",
+    top: 56,
+    left: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  backBtnText: { color: "#fff", fontSize: 24, lineHeight: 28 },
+  headerTitle: { fontSize: 24, fontWeight: "800", color: "#fff", textAlign: "center" },
+  headerSub: {
+    fontSize: 13,
+    color: "rgba(255,255,255,0.75)",
+    textAlign: "center",
+    marginTop: 4,
+  },
+
+  /* VACÍO */
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 40,
+  },
+  emptyIcon: { fontSize: 64, marginBottom: 16 },
+  emptyTitle: { fontSize: 20, fontWeight: "800", color: "#333", marginBottom: 8 },
+  emptyText: {
+    fontSize: 14,
+    color: "#888",
+    textAlign: "center",
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  exploreButton: {
+    backgroundColor: GREEN,
+    paddingVertical: 13,
+    paddingHorizontal: 28,
+    borderRadius: 14,
+    elevation: 3,
+    shadowColor: GREEN,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+  },
+  exploreButtonText: { color: "#fff", fontWeight: "800", fontSize: 15 },
+
+  /* CARD */
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    marginBottom: 16,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    overflow: "hidden",
+  },
+
+  imageWrapper: { position: "relative" },
+
+  cardImage: { width: "100%", height: 160 },
+
+  ratingBadge: {
+    position: "absolute",
+    bottom: 10,
+    left: 12,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  ratingBadgeText: { color: "#fff", fontSize: 12, fontWeight: "700" },
+
+  heartButton: {
+    position: "absolute",
+    top: 10,
+    right: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(255,255,255,0.92)",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 3,
+  },
+  heartIcon: { fontSize: 18 },
+
+  cardBody: { padding: 14 },
+
+  cardTop: { flexDirection: "row", alignItems: "flex-start", marginBottom: 8 },
+
+  cardName: { fontSize: 17, fontWeight: "800", color: "#1A1A1A", marginBottom: 3 },
+
+  cardAddress: { fontSize: 13, color: "#888" },
+
+  typesRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 12 },
+
+  typeChip: {
+    backgroundColor: "#E8F8F0",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  typeChipText: { fontSize: 11, color: GREEN, fontWeight: "600" },
+
+  cardActions: { flexDirection: "row", gap: 10 },
+
+  detailBtn: {
+    flex: 1,
+    backgroundColor: GREEN,
+    paddingVertical: 11,
+    borderRadius: 12,
+    alignItems: "center",
+    elevation: 2,
+    shadowColor: GREEN,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  detailBtnText: { color: "#fff", fontWeight: "700", fontSize: 14 },
+
+  removeBtn: {
+    paddingHorizontal: 18,
+    paddingVertical: 11,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: "#FFBDBD",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  removeBtnText: { color: "#E74C3C", fontWeight: "700", fontSize: 14 },
+});

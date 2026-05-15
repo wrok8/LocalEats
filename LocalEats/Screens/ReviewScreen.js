@@ -1,126 +1,141 @@
 import React, { useState, useEffect } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Keyboard
+  View, Text, StyleSheet, TextInput, TouchableOpacity,
+  ActivityIndicator, Alert, FlatList, Keyboard
 } from "react-native";
 import { getAuth } from "firebase/auth";
 import {
-  collection,
-  addDoc,
-  query,
-  onSnapshot,
-  orderBy,
-  doc,
-  setDoc,
-  getDoc,
-  updateDoc,
-  increment,
-  where,
-  getDocs
+  collection, addDoc, query, onSnapshot, orderBy,
+  doc, setDoc, getDoc, updateDoc, increment
 } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { LinearGradient } from "expo-linear-gradient";
+
+const GREEN = "#27AE60";
+const DARK_GREEN = "#1A5C35";
 
 export default function ReviewScreen({ route, navigation }) {
   const { restaurant } = route.params;
+
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
-  const [reviews, setReviews] = useState([]);
+  const [appReviews, setAppReviews] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [hasReviewed, setHasReviewed] = useState(false); // Estado para saber si ya opinó
+  const [hasReviewed, setHasReviewed] = useState(false);
   const [sending, setSending] = useState(false);
 
   const user = getAuth().currentUser;
+  const googleReviews = restaurant.googleReviews || restaurant.reviews || [];
 
   useEffect(() => {
-    // 1. Escuchar reseñas de todos los usuarios
     const reviewsRef = collection(db, "restaurants", restaurant.id, "reviews");
     const q = query(reviewsRef, orderBy("createdAt", "desc"));
-    
+
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setReviews(docs);
-      
-      // 2. Verificar si el usuario actual está en la lista de reseñas
-      const alreadyReviewed = docs.some(rev => rev.userId === user?.uid);
-      setHasReviewed(alreadyReviewed);
-      
+      const docs = snapshot.docs.map((d) => ({
+        id: d.id,
+        source: "app",
+        ...d.data(),
+      }));
+
+      setAppReviews(docs);
+      setHasReviewed(docs.some((rev) => rev.userId === user?.uid));
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
-  const sendReview = async () => {
+  async function sendReview() {
     if (hasReviewed) {
       Alert.alert("Aviso", "Ya has escrito una reseña para este restaurante.");
       return;
     }
 
-    if (comment.trim() === "") {
+    if (!comment.trim()) {
       Alert.alert("Error", "El comentario no puede estar vacío");
       return;
     }
 
     setSending(true);
+
     try {
       const restaurantRef = doc(db, "restaurants", restaurant.id);
       const reviewRef = collection(db, "restaurants", restaurant.id, "reviews");
 
       const restSnap = await getDoc(restaurantRef);
+
       if (!restSnap.exists()) {
         await setDoc(restaurantRef, {
           name: restaurant.name,
           averageRating: rating,
+          rating,
           reviewsCount: 1,
+          totalReviews: 1,
           totalRatingSum: rating,
-          address: restaurant.address || ""
+          address: restaurant.address || restaurant.vicinity || "",
+          source: restaurant.source || "google",
         });
       } else {
         const data = restSnap.data();
         const newCount = (data.reviewsCount || 0) + 1;
         const newSum = (data.totalRatingSum || 0) + rating;
+
         await updateDoc(restaurantRef, {
           reviewsCount: increment(1),
+          totalReviews: increment(1),
           totalRatingSum: increment(rating),
-          averageRating: newSum / newCount
+          averageRating: newSum / newCount,
+          rating: newSum / newCount,
         });
       }
 
       await addDoc(reviewRef, {
         userId: user.uid,
-        userName: user.displayName || user.email.split('@')[0],
-        rating: rating,
-        comment: comment,
-        createdAt: new Date()
+        userName: user.displayName || user.email.split("@")[0],
+        rating,
+        comment: comment.trim(),
+        createdAt: new Date(),
       });
 
       setComment("");
       Keyboard.dismiss();
       Alert.alert("Éxito", "Tu reseña ha sido enviada");
-
     } catch (error) {
       console.log(error);
       Alert.alert("Error", "No se pudo enviar la reseña");
     } finally {
       setSending(false);
     }
-  };
+  }
+
+  const allReviews = [
+    ...appReviews,
+    ...googleReviews.map((r, index) => ({
+      id: `google-${index}`,
+      source: "google",
+      userName: r.author_name || "Usuario de Google",
+      rating: r.rating || 0,
+      comment: r.text || "Sin comentario",
+      relativeTime: r.relative_time_description || "",
+    })),
+  ];
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Reseñas de {restaurant.name}</Text>
+      <LinearGradient colors={[DARK_GREEN, GREEN]} style={styles.header}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <Text style={styles.backText}>‹</Text>
+        </TouchableOpacity>
 
-      {/* Formulario condicional */}
+        <Text style={styles.headerTitle}>⭐ Reseñas</Text>
+        <Text style={styles.headerSub}>{restaurant.name}</Text>
+      </LinearGradient>
+
       {!hasReviewed ? (
-        <View style={styles.addReviewBox}>
-          <Text>¿Qué te pareció este lugar?</Text>
+        <View style={styles.reviewBox}>
+          <Text style={styles.boxTitle}>¿Qué te pareció este lugar?</Text>
+
           <View style={styles.starsSelector}>
             {[1, 2, 3, 4, 5].map((num) => (
               <TouchableOpacity key={num} onPress={() => setRating(num)}>
@@ -128,62 +143,284 @@ export default function ReviewScreen({ route, navigation }) {
               </TouchableOpacity>
             ))}
           </View>
-          <TextInput 
-            style={styles.input} 
-            placeholder="Cuéntanos tu experiencia..." 
-            value={comment} 
-            onChangeText={setComment} 
-            multiline 
+
+          <TextInput
+            style={styles.input}
+            placeholder="Cuéntanos tu experiencia..."
+            placeholderTextColor="#999"
+            value={comment}
+            onChangeText={setComment}
+            multiline
           />
-          <TouchableOpacity 
-            style={[styles.btnSend, sending && { opacity: 0.6 }]} 
+
+          <TouchableOpacity
+            style={[styles.btnSend, sending && { opacity: 0.6 }]}
             onPress={sendReview}
             disabled={sending}
           >
-            {sending ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Publicar Reseña</Text>}
+            {sending ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.btnText}>Publicar reseña</Text>
+            )}
           </TouchableOpacity>
         </View>
       ) : (
-        <View style={styles.alreadyReviewedBox}>
-          <Text style={styles.alreadyText}>✅ Ya has publicado una reseña sobre este restaurante.</Text>
+        <View style={styles.alreadyBox}>
+          <Text style={styles.alreadyText}>
+            ✅ Ya publicaste una reseña sobre este restaurante.
+          </Text>
         </View>
       )}
 
-      <Text style={styles.subtitle}>Opiniones de la comunidad:</Text>
-      {loading ? <ActivityIndicator size="large" color="#27AE60" /> : (
+      <View style={styles.sectionHeader}>
+        <Text style={styles.subtitle}>Opiniones</Text>
+        <Text style={styles.countText}>{allReviews.length} reseñas</Text>
+      </View>
+
+      {loading ? (
+        <ActivityIndicator size="large" color={GREEN} style={{ marginTop: 30 }} />
+      ) : (
         <FlatList
-          data={reviews}
+          data={allReviews}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Text style={styles.cardUser}>{item.userName} {item.userId === user?.uid && "(Tú)"}</Text>
-                <Text>{"⭐".repeat(item.rating)}</Text>
-              </View>
-              <Text style={styles.cardComment}>{item.comment}</Text>
+          contentContainerStyle={{ paddingBottom: 40 }}
+          renderItem={({ item }) => <ReviewCard item={item} currentUser={user} />}
+          ListEmptyComponent={
+            <View style={styles.emptyBox}>
+              <Text style={styles.emptyIcon}>💬</Text>
+              <Text style={styles.emptyText}>Sé el primero en opinar.</Text>
             </View>
-          )}
-          ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 20 }}>Sé el primero en opinar.</Text>}
+          }
         />
       )}
     </View>
   );
 }
 
+function ReviewCard({ item, currentUser }) {
+  const isMine = item.userId === currentUser?.uid;
+
+  return (
+    <View style={styles.card}>
+      <View style={styles.cardTop}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>
+            {(item.userName || "U").charAt(0).toUpperCase()}
+          </Text>
+        </View>
+
+        <View style={{ flex: 1 }}>
+          <Text style={styles.cardUser}>
+            {item.userName} {isMine ? "(Tú)" : ""}
+          </Text>
+
+          <Text style={styles.sourceText}>
+            {item.source === "google" ? "Google Maps" : "Localeats"}
+            {item.relativeTime ? ` · ${item.relativeTime}` : ""}
+          </Text>
+        </View>
+
+        <Text style={styles.cardStars}>
+          {"⭐".repeat(Math.round(item.rating || 0))}
+        </Text>
+      </View>
+
+      <Text style={styles.cardComment}>{item.comment}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", padding: 20 },
-  title: { fontSize: 22, fontWeight: "bold", marginBottom: 15 },
-  subtitle: { fontSize: 18, fontWeight: "bold", marginVertical: 15 },
-  addReviewBox: { backgroundColor: "#f9f9f9", padding: 15, borderRadius: 10, elevation: 2 },
-  alreadyReviewedBox: { backgroundColor: "#E8F5E9", padding: 15, borderRadius: 10, borderLeftWidth: 5, borderLeftColor: "#27AE60" },
-  alreadyText: { color: "#2E7D32", fontWeight: "bold", textAlign: "center" },
-  starsSelector: { flexDirection: "row", marginVertical: 10 },
-  bigStar: { fontSize: 32 },
-  input: { backgroundColor: "#fff", borderWidth: 1, borderColor: "#ddd", borderRadius: 8, padding: 10, height: 80, textAlignVertical: "top" },
-  btnSend: { backgroundColor: "#27AE60", padding: 12, borderRadius: 8, marginTop: 10 },
-  btnText: { color: "#fff", textAlign: "center", fontWeight: "bold" },
-  card: { padding: 15, borderBottomWidth: 1, borderBottomColor: "#eee" },
-  cardHeader: { flexDirection: "row", justifyContent: "space-between", marginBottom: 5 },
-  cardUser: { fontWeight: "bold", color: "#333" },
-  cardComment: { color: "#555" }
+  container: { flex: 1, backgroundColor: "#F4F6F4" },
+
+  header: {
+    paddingTop: 58,
+    paddingBottom: 28,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+  },
+
+  backBtn: {
+    position: "absolute",
+    top: 54,
+    left: 16,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  backText: { color: "#fff", fontSize: 28, lineHeight: 30 },
+
+  headerTitle: {
+    color: "#fff",
+    fontSize: 25,
+    fontWeight: "900",
+    textAlign: "center",
+  },
+
+  headerSub: {
+    color: "rgba(255,255,255,0.8)",
+    textAlign: "center",
+    marginTop: 4,
+    fontSize: 13,
+  },
+
+  reviewBox: {
+    backgroundColor: "#fff",
+    margin: 16,
+    marginTop: -14,
+    padding: 16,
+    borderRadius: 20,
+    elevation: 4,
+  },
+
+  boxTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#222",
+    marginBottom: 8,
+  },
+
+  starsSelector: {
+    flexDirection: "row",
+    marginVertical: 10,
+  },
+
+  bigStar: {
+    fontSize: 34,
+    marginRight: 4,
+  },
+
+  input: {
+    backgroundColor: "#F7F7F7",
+    borderRadius: 14,
+    padding: 12,
+    minHeight: 90,
+    textAlignVertical: "top",
+    fontSize: 14,
+    color: "#333",
+    borderWidth: 1,
+    borderColor: "#eee",
+  },
+
+  btnSend: {
+    backgroundColor: GREEN,
+    padding: 14,
+    borderRadius: 14,
+    marginTop: 12,
+    alignItems: "center",
+  },
+
+  btnText: {
+    color: "#fff",
+    fontWeight: "900",
+    fontSize: 15,
+  },
+
+  alreadyBox: {
+    backgroundColor: "#E8F8F0",
+    margin: 16,
+    marginTop: -14,
+    padding: 16,
+    borderRadius: 18,
+    borderLeftWidth: 4,
+    borderLeftColor: GREEN,
+  },
+
+  alreadyText: {
+    color: DARK_GREEN,
+    fontWeight: "800",
+    textAlign: "center",
+  },
+
+  sectionHeader: {
+    paddingHorizontal: 18,
+    marginBottom: 8,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+
+  subtitle: {
+    fontSize: 18,
+    fontWeight: "900",
+    color: "#222",
+  },
+
+  countText: {
+    color: "#888",
+    fontWeight: "700",
+  },
+
+  card: {
+    backgroundColor: "#fff",
+    marginHorizontal: 16,
+    marginBottom: 12,
+    padding: 15,
+    borderRadius: 18,
+    elevation: 2,
+  },
+
+  cardTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+
+  avatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "#E8F8F0",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+
+  avatarText: {
+    color: DARK_GREEN,
+    fontWeight: "900",
+    fontSize: 17,
+  },
+
+  cardUser: {
+    fontWeight: "900",
+    color: "#222",
+    fontSize: 14,
+  },
+
+  sourceText: {
+    fontSize: 11,
+    color: "#888",
+    marginTop: 2,
+  },
+
+  cardStars: {
+    fontSize: 13,
+  },
+
+  cardComment: {
+    color: "#555",
+    fontSize: 14,
+    lineHeight: 20,
+  },
+
+  emptyBox: {
+    alignItems: "center",
+    marginTop: 40,
+  },
+
+  emptyIcon: {
+    fontSize: 42,
+    marginBottom: 8,
+  },
+
+  emptyText: {
+    color: "#888",
+    fontSize: 14,
+  },
 });

@@ -22,7 +22,6 @@ import FavoritesScreen from "./Screens/FavoritesScreen";
 import MyRestaurantScreen from "./Screens/MyRestaurantScreen";
 import EditRestaurantScreen from "./Screens/EditRestaurantScreen";
 import ChangePhotosScreen from "./Screens/ChangePhotosScreen";
-import PromotionsScreen from "./Screens/PromotionsScreen";
 
 /* TABS */
 import BottomTabs from "./navigation/BottomTabs";
@@ -130,10 +129,6 @@ export default function App() {
           component={ChangePhotosScreen}
         />
 
-        <Stack.Screen
-          name="Promotions"
-          component={PromotionsScreen}
-        />
       </Stack.Navigator>
     </NavigationContainer>
   );

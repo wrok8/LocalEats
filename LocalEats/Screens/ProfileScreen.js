@@ -199,7 +199,11 @@ export default function ProfileScreen({ navigation }) {
       {/* ===== HEADER CON GRADIENTE ===== */}
       <View style={styles.headerWrapper}>
         <LinearGradient
-          colors={["#1A5C35", "#27AE60"]}
+          colors={[
+            "rgba(10, 65, 38, 0.97)",
+            "rgba(39, 174, 96, 0.93)",
+            "rgba(255, 185, 73, 0.78)",
+          ]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.headerGradient}
@@ -207,6 +211,9 @@ export default function ProfileScreen({ navigation }) {
           {/* Círculos decorativos */}
           <View style={styles.decorCircle1} />
           <View style={styles.decorCircle2} />
+
+          <Text style={styles.appName}>LocalEats</Text>
+          <Text style={styles.headerTitle}>Perfil</Text>
 
           {/* Foto de perfil */}
           <TouchableOpacity
@@ -389,6 +396,25 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.06)",
     bottom: -40,
     left: -30,
+  },
+
+  appName: {
+    color: "rgba(255,255,255,0.78)",
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 1,
+    textTransform: "uppercase",
+    zIndex: 2,
+  },
+
+  headerTitle: {
+    color: "#fff",
+    fontSize: 28,
+    fontWeight: "900",
+    marginTop: 6,
+    marginBottom: 18,
+    textAlign: "center",
+    zIndex: 2,
   },
 
   avatarWrapper: {

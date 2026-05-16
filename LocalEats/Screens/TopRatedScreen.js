@@ -51,7 +51,7 @@ export default function TopRatedScreen({ navigation, route }) {
               imageStyle={styles.backgroundImage}
             />
       
-            <ImgTop title="Mejores valorados" />
+            <ImgTop title="Restaurantes" />
       
             <View style={styles.searchContainer}>
               <TextInput

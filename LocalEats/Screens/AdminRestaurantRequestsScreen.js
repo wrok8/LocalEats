@@ -148,10 +148,19 @@ export default function AdminRestaurantRequestsScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={[DARK_GREEN, GREEN]}
+        colors={[
+          "rgba(10, 65, 38, 0.97)",
+          "rgba(39, 174, 96, 0.93)",
+          "rgba(255, 185, 73, 0.78)",
+        ]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
         style={styles.header}
       >
-        <Text style={styles.headerTitle}>🛡️ Solicitudes pendientes</Text>
+        <View style={styles.decorCircle1} />
+        <View style={styles.decorCircle2} />
+        <Text style={styles.appName}>LocalEats</Text>
+        <Text style={styles.headerTitle}>Solicitudes pendientes</Text>
         <Text style={styles.headerSub}>
           Revisa la información antes de aprobar un restaurante
         </Text>
@@ -423,8 +432,38 @@ const styles = StyleSheet.create({
     paddingTop: 56,
     paddingBottom: 26,
     paddingHorizontal: 20,
-    borderBottomLeftRadius: 26,
-    borderBottomRightRadius: 26,
+    overflow: "hidden",
+    position: "relative",
+  },
+
+  decorCircle1: {
+    position: "absolute",
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    top: -60,
+    right: -50,
+  },
+
+  decorCircle2: {
+    position: "absolute",
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    bottom: -40,
+    left: -30,
+  },
+
+  appName: {
+    color: "rgba(255,255,255,0.78)",
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 1,
+    textTransform: "uppercase",
+    textAlign: "center",
+    zIndex: 2,
   },
 
   headerTitle: {
@@ -432,6 +471,8 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "900",
     textAlign: "center",
+    marginTop: 6,
+    zIndex: 2,
   },
 
   headerSub: {
@@ -439,6 +480,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: "center",
     marginTop: 6,
+    zIndex: 2,
   },
 
   listContent: {

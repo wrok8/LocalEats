@@ -125,19 +125,25 @@ export default function AnalyticsScreen({ navigation }) {
     >
       {/* HEADER */}
       <LinearGradient
-        colors={[DARK_GREEN, GREEN]}
+        colors={[
+          "rgba(10, 65, 38, 0.97)",
+          "rgba(39, 174, 96, 0.93)",
+          "rgba(255, 185, 73, 0.78)",
+        ]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.header}
       >
-        <View style={styles.decorCircle} />
+        <View style={styles.decorCircle1} />
+        <View style={styles.decorCircle2} />
         <TouchableOpacity
           onPress={() => navigation?.goBack()}
           style={styles.backButton}
         >
           <Text style={styles.backButtonText}>‹</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>📊 Estadísticas</Text>
+        <Text style={styles.appName}>LocalEats</Text>
+        <Text style={styles.headerTitle}>Estadísticas</Text>
         <Text style={styles.headerSubtitle}>{restaurant.name || "Mi restaurante"}</Text>
       </LinearGradient>
 
@@ -372,14 +378,24 @@ const styles = StyleSheet.create({
     position: "relative",
   },
 
-  decorCircle: {
+  decorCircle1: {
     position: "absolute",
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: "rgba(255,255,255,0.07)",
-    top: -40,
-    right: -40,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    top: -60,
+    right: -50,
+  },
+
+  decorCircle2: {
+    position: "absolute",
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    bottom: -40,
+    left: -30,
   },
 
   backButton: {
@@ -396,11 +412,23 @@ const styles = StyleSheet.create({
 
   backButtonText: { color: "#fff", fontSize: 24, lineHeight: 28 },
 
+  appName: {
+    color: "rgba(255,255,255,0.78)",
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 1,
+    textTransform: "uppercase",
+    textAlign: "center",
+    zIndex: 2,
+  },
+
   headerTitle: {
     fontSize: 26,
-    fontWeight: "800",
+    fontWeight: "900",
     color: "#fff",
     textAlign: "center",
+    marginTop: 6,
+    zIndex: 2,
   },
 
   headerSubtitle: {
@@ -408,6 +436,7 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.75)",
     textAlign: "center",
     marginTop: 4,
+    zIndex: 2,
   },
 
   /* TABS */

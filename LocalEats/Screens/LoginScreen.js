@@ -1,4 +1,4 @@
-import { StatusBar } from 'expo-status-bar';
+﻿import { StatusBar } from 'expo-status-bar';
 import Checkbox from 'expo-checkbox';
 import { StyleSheet, View, Text, Pressable, Dimensions, Alert } from 'react-native';
 const { width } = Dimensions.get("window");
@@ -8,7 +8,7 @@ import Button from '../Components/Button';
 import ImgTop from '../Components/ImageTop';
 import AppTextInput from '../Components/TextTittle';
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebaseConfig";
@@ -20,26 +20,6 @@ export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-
-
-  useEffect(() => {
-    const checkLogin = async () => {
-      const savedEmail = await AsyncStorage.getItem("userEmail");
-      const savedPassword = await AsyncStorage.getItem("userPassword");
-
-      if (savedEmail && savedPassword) {
-        try {
-          await signInWithEmailAndPassword(auth, savedEmail, savedPassword);
-          navigation.replace("MainTabs");
-        } catch (error) {
-          console.log("Auto login falló");
-        }
-      }
-    };
-
-    checkLogin();
-  }, []);
-
 
   const loginUser = async () => {
 
@@ -103,7 +83,7 @@ export default function LoginScreen({ navigation }) {
       {/* Botón */}
       <View style={styles.ButtonContainer}>
         <Button
-          title="Iniciar Sesion"
+          title="Iniciar Sesión"
           variant="primary"
           onPress={loginUser}
         />

@@ -12,6 +12,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebaseConfig";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function PreferencesScreen({ navigation }) {
 
@@ -67,11 +68,29 @@ export default function PreferencesScreen({ navigation }) {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingBottom: 40 }}
+      showsVerticalScrollIndicator={false}
+    >
 
       {/* HEADER */}
-      <Text style={styles.title}>Preferencias</Text>
-      <Text style={styles.subtitle}>Personaliza tu experiencia</Text>
+      <LinearGradient
+        colors={[
+          "rgba(10, 65, 38, 0.97)",
+          "rgba(39, 174, 96, 0.93)",
+          "rgba(255, 185, 73, 0.78)",
+        ]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.header}
+      >
+        <View style={styles.decorCircle1} />
+        <View style={styles.decorCircle2} />
+        <Text style={styles.appName}>LocalEats</Text>
+        <Text style={styles.title}>Preferencias</Text>
+        <Text style={styles.subtitle}>Personaliza tu experiencia</Text>
+      </LinearGradient>
 
       {/* TARJETA CONFIG */}
       <View style={styles.card}>
@@ -121,25 +140,67 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f1f1f1",
-    padding: 20,
+  },
+
+  header: {
+    paddingTop: 60,
+    paddingBottom: 30,
+    paddingHorizontal: 20,
+    overflow: "hidden",
+    position: "relative",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+
+  decorCircle1: {
+    position: "absolute",
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    top: -60,
+    right: -50,
+  },
+
+  decorCircle2: {
+    position: "absolute",
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    bottom: -40,
+    left: -30,
+  },
+
+  appName: {
+    color: "rgba(255,255,255,0.78)",
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 1,
+    textTransform: "uppercase",
+    zIndex: 2,
   },
 
   title: {
     fontSize: 26,
-    fontWeight: "bold",
-    color: "#222",
+    fontWeight: "900",
+    color: "#fff",
+    marginTop: 6,
+    zIndex: 2,
   },
 
   subtitle: {
     fontSize: 14,
-    color: "#666",
-    marginBottom: 20,
+    color: "rgba(255,255,255,0.84)",
+    marginTop: 4,
+    zIndex: 2,
   },
 
   card: {
     backgroundColor: "#fff",
     borderRadius: 15,
     padding: 15,
+    marginHorizontal: 20,
     marginBottom: 20,
     shadowColor: "#000",
     shadowOpacity: 0.05,

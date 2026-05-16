@@ -104,16 +104,22 @@ export default function FavoritesScreen({ navigation }) {
     <View style={styles.container}>
       {/* HEADER */}
       <LinearGradient
-        colors={[DARK_GREEN, GREEN]}
+        colors={[
+          "rgba(10, 65, 38, 0.97)",
+          "rgba(39, 174, 96, 0.93)",
+          "rgba(255, 185, 73, 0.78)",
+        ]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.header}
       >
-        <View style={styles.decorCircle} />
+        <View style={styles.decorCircle1} />
+        <View style={styles.decorCircle2} />
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Text style={styles.backBtnText}>‹</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>❤️ Mis favoritos</Text>
+        <Text style={styles.appName}>LocalEats</Text>
+        <Text style={styles.headerTitle}>Mis favoritos</Text>
         <Text style={styles.headerSub}>
           {favorites.length > 0
             ? `${favorites.length} restaurante${favorites.length !== 1 ? "s" : ""} guardado${favorites.length !== 1 ? "s" : ""}`
@@ -245,14 +251,23 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     position: "relative",
   },
-  decorCircle: {
+  decorCircle1: {
     position: "absolute",
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: "rgba(255,255,255,0.07)",
-    top: -40,
-    right: -40,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    top: -60,
+    right: -50,
+  },
+  decorCircle2: {
+    position: "absolute",
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    bottom: -40,
+    left: -30,
   },
   backBtn: {
     position: "absolute",
@@ -266,12 +281,29 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   backBtnText: { color: "#fff", fontSize: 24, lineHeight: 28 },
-  headerTitle: { fontSize: 24, fontWeight: "800", color: "#fff", textAlign: "center" },
+  appName: {
+    color: "rgba(255,255,255,0.78)",
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 1,
+    textTransform: "uppercase",
+    textAlign: "center",
+    zIndex: 2,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: "900",
+    color: "#fff",
+    textAlign: "center",
+    marginTop: 6,
+    zIndex: 2,
+  },
   headerSub: {
     fontSize: 13,
     color: "rgba(255,255,255,0.75)",
     textAlign: "center",
     marginTop: 4,
+    zIndex: 2,
   },
 
   /* VACÍO */

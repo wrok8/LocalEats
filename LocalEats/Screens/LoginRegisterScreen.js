@@ -1,7 +1,7 @@
-import React from 'react';
+﻿import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Dimensions } from 'react-native';
-import Svg, { Path, Defs, Pattern, Image, Circle } from "react-native-svg";
+import Svg, { Path, Defs, Pattern, Image, Circle, LinearGradient, Stop } from "react-native-svg";
 import Button from '../Components/Button';
 
 const { width, height } = Dimensions.get("window");
@@ -17,6 +17,12 @@ export default function LoginRegister({ navigation }) {
         preserveAspectRatio="none"
       >
         <Defs>
+          <LinearGradient id="homeGradient" x1="0" y1="0" x2="1" y2="1">
+            <Stop offset="0" stopColor="rgb(10, 65, 38)" stopOpacity="0.97" />
+            <Stop offset="0.58" stopColor="rgb(39, 174, 96)" stopOpacity="0.93" />
+            <Stop offset="1" stopColor="rgb(255, 185, 73)" stopOpacity="0.78" />
+          </LinearGradient>
+
           <Pattern
             id="pattern"
             patternUnits="userSpaceOnUse"
@@ -34,7 +40,7 @@ export default function LoginRegister({ navigation }) {
         </Defs>
 
         <Path
-          fill="#27AE60"
+          fill="url(#homeGradient)"
           d="M0,0 H430 V180
              C350,210 280,230 215,210
              C150,190 100,150 0,170 Z"
@@ -176,3 +182,4 @@ const styles = StyleSheet.create({
     marginTop: 30,
   },
 });
+

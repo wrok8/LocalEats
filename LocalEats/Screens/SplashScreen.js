@@ -1,13 +1,35 @@
 import React, { useEffect } from "react";
 import { View, StyleSheet, Image } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebaseConfig";
 
 export default function SplashScreen({ navigation }) {
 
   useEffect(() => {
-    setTimeout(() => {
-      navigation.replace("Welcome");
-    }, 2500);
+    checkSavedSession();
   }, []);
+
+  async function checkSavedSession() {
+    try {
+      const savedEmail = await AsyncStorage.getItem("userEmail");
+      const savedPassword = await AsyncStorage.getItem("userPassword");
+
+      await new Promise((resolve) => setTimeout(resolve, 1800));
+
+      if (savedEmail && savedPassword) {
+        await signInWithEmailAndPassword(auth, savedEmail, savedPassword);
+        navigation.replace("MainTabs");
+        return;
+      }
+    } catch (error) {
+      await AsyncStorage.removeItem("userEmail");
+      await AsyncStorage.removeItem("userPassword");
+      console.log("Auto login falló:", error.code);
+    }
+
+    navigation.replace("Welcome");
+  }
 
   return (
     <View style={styles.container}>

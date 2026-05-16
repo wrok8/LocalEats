@@ -67,37 +67,41 @@ const RATING_OPTIONS = [
   { label: "Solo 5 estrellas", value: 5 },
 ];
 
+const FILTER_OPTION_BG = "#E8F8F0";
+const FILTER_OPTION_ACCENT = "#27AE60";
+const FILTER_OPTION_ICON_BG = "#1F9D55";
+
 /* =============================
    MODAL GENÉRICO DE FILTRO
 ==============================*/
 
 const PASTEL_PRICE_OPTIONS = [
-  { label: "Cualquier precio", value: null, icon: "$", color: "#E8F8F0", accent: "#27AE60" },
-  { label: "$100 - $200", value: [100, 200], icon: "$", color: "#E8F8F0", accent: "#27AE60" },
-  { label: "$200 - $500", value: [200, 500], icon: "$$", color: "#DFF4E8", accent: "#1F9D55" },
-  { label: "$500 - $1000", value: [500, 1000], icon: "$$$", color: "#EEF7EF", accent: "#1A5C35" },
+  { label: "Cualquier precio", value: null, icon: "$" },
+  { label: "$100 - $200", value: [100, 200], icon: "$" },
+  { label: "$200 - $500", value: [200, 500], icon: "$$" },
+  { label: "$500 - $1000", value: [500, 1000], icon: "$$$" },
 ];
 
 const PASTEL_CATEGORY_OPTIONS = [
-  { label: "Todas las categorias", value: null, icon: "\u2726", color: "#E8F8F0", accent: "#27AE60" },
-  { label: "Sushi", value: "sushi", icon: "\uD83C\uDF63", color: "#EEF7EF", accent: "#1A5C35" },
-  { label: "Pizza", value: "pizza", icon: "\uD83C\uDF55", color: "#DFF4E8", accent: "#1F9D55" },
-  { label: "Hamburguesas", value: "hamburger", icon: "\uD83C\uDF54", color: "#E8F8F0", accent: "#27AE60" },
-  { label: "Tacos", value: "mexican", icon: "\uD83C\uDF2E", color: "#E8F8F0", accent: "#27AE60" },
-  { label: "Ramen", value: "ramen", icon: "\uD83C\uDF5C", color: "#DFF4E8", accent: "#1F9D55" },
-  { label: "Ensaladas", value: "salad", icon: "\uD83E\uDD57", color: "#E8F8F0", accent: "#27AE60" },
-  { label: "Pollo", value: "chicken", icon: "\uD83C\uDF57", color: "#EEF7EF", accent: "#1A5C35" },
-  { label: "Carnes", value: "steak", icon: "\uD83E\uDD69", color: "#DFF4E8", accent: "#1F9D55" },
-  { label: "Postres", value: "dessert", icon: "\uD83C\uDF66", color: "#E8F8F0", accent: "#27AE60" },
+  { label: "Todas las categorias", value: null, icon: "\u2726" },
+  { label: "Sushi", value: "sushi", icon: "\uD83C\uDF63" },
+  { label: "Pizza", value: "pizza", icon: "\uD83C\uDF55" },
+  { label: "Hamburguesas", value: "hamburger", icon: "\uD83C\uDF54" },
+  { label: "Tacos", value: "mexican", icon: "\uD83C\uDF2E" },
+  { label: "Ramen", value: "ramen", icon: "\uD83C\uDF5C" },
+  { label: "Ensaladas", value: "salad", icon: "\uD83E\uDD57" },
+  { label: "Pollo", value: "chicken", icon: "\uD83C\uDF57" },
+  { label: "Carnes", value: "steak", icon: "\uD83E\uDD69" },
+  { label: "Postres", value: "dessert", icon: "\uD83C\uDF66" },
 ];
 
 const PASTEL_RATING_OPTIONS = [
-  { label: "Cualquier calificacion", value: null, icon: "*", color: "#E8F8F0", accent: "#27AE60" },
-  { label: "1 estrella o mas", value: 1, icon: "1", color: "#E8F8F0", accent: "#27AE60" },
-  { label: "2 estrellas o mas", value: 2, icon: "2", color: "#DFF4E8", accent: "#1F9D55" },
-  { label: "3 estrellas o mas", value: 3, icon: "3", color: "#EEF7EF", accent: "#1A5C35" },
-  { label: "4 estrellas o mas", value: 4, icon: "4", color: "#E8F8F0", accent: "#27AE60" },
-  { label: "Solo 5 estrellas", value: 5, icon: "5", color: "#DFF4E8", accent: "#1F9D55" },
+  { label: "Cualquier calificacion", value: null, icon: "★" },
+  { label: "1 estrella o mas", value: 1, icon: "★" },
+  { label: "2 estrellas o mas", value: 2, icon: "★" },
+  { label: "3 estrellas o mas", value: 3, icon: "★" },
+  { label: "4 estrellas o mas", value: 4, icon: "★" },
+  { label: "Solo 5 estrellas", value: 5, icon: "★" },
 ];
 
 function FilterModal({ visible, title, options, selectedValue, onSelect, onClose }) {
@@ -132,9 +136,9 @@ function FilterModal({ visible, title, options, selectedValue, onSelect, onClose
                   key={index}
                   style={[
                     styles.modalOption,
-                    { backgroundColor: option.color || "#f7f7f7" },
+                    { backgroundColor: FILTER_OPTION_BG },
                     isSelected && styles.modalOptionSelected,
-                    isSelected && { borderColor: option.accent || "#27AE60" },
+                    isSelected && { borderColor: FILTER_OPTION_ACCENT },
                   ]}
                   onPress={() => {
                     onSelect(option.value);
@@ -146,7 +150,7 @@ function FilterModal({ visible, title, options, selectedValue, onSelect, onClose
                     <View
                       style={[
                         styles.modalIconCircle,
-                        { backgroundColor: option.accent || "#27AE60" },
+                        { backgroundColor: FILTER_OPTION_ICON_BG },
                       ]}
                     >
                       <Text style={styles.modalIconText}>{option.icon || "•"}</Text>
@@ -156,7 +160,7 @@ function FilterModal({ visible, title, options, selectedValue, onSelect, onClose
                       style={[
                         styles.modalOptionText,
                         isSelected && styles.modalOptionTextSelected,
-                        isSelected && { color: option.accent || "#27AE60" },
+                        isSelected && { color: FILTER_OPTION_ACCENT },
                       ]}
                     >
                       {option.label}
@@ -167,7 +171,7 @@ function FilterModal({ visible, title, options, selectedValue, onSelect, onClose
                     <View
                       style={[
                         styles.checkmark,
-                        { backgroundColor: option.accent || "#27AE60" },
+                        { backgroundColor: FILTER_OPTION_ACCENT },
                       ]}
                     >
                       <Text style={styles.checkmarkText}>✓</Text>
@@ -487,16 +491,10 @@ export default function HomeScreen({ navigation }) {
 
   const firstName = userName.trim().split(/\s+/)[0] || "Usuario";
 
-  const priceTone =
-    PASTEL_PRICE_OPTIONS.find(
-      (o) => JSON.stringify(o.value) === JSON.stringify(selectedPrice)
-    ) || PASTEL_PRICE_OPTIONS[0];
-  const categoryTone =
-    PASTEL_CATEGORY_OPTIONS.find((o) => o.value === selectedCategory) ||
-    PASTEL_CATEGORY_OPTIONS[0];
-  const ratingTone =
-    PASTEL_RATING_OPTIONS.find((o) => o.value === selectedRating) ||
-    PASTEL_RATING_OPTIONS[0];
+  const filterTone = {
+    color: FILTER_OPTION_BG,
+    accent: FILTER_OPTION_ACCENT,
+  };
 
   /* =============================
      UI
@@ -616,6 +614,8 @@ export default function HomeScreen({ navigation }) {
           />
         </ImageBackground>
 
+        <HomeSectionHeader title="Explorar" />
+
         {/* ===== FILTROS ===== */}
         <View style={styles.filtersWrapper}>
 
@@ -623,8 +623,8 @@ export default function HomeScreen({ navigation }) {
               {/* Botón Precio */}
               <FilterChip
                 title={priceLabel}
-                color={priceTone.color}
-                accent={priceTone.accent}
+                color={filterTone.color}
+                accent={filterTone.accent}
                 active={selectedPrice !== null}
                 onPress={() => setShowPriceModal(true)}
                 onClear={
@@ -635,8 +635,8 @@ export default function HomeScreen({ navigation }) {
               {/* Botón Categoría */}
               <FilterChip
                 title={categoryLabel}
-                color={categoryTone.color}
-                accent={categoryTone.accent}
+                color={filterTone.color}
+                accent={filterTone.accent}
                 active={selectedCategory !== null}
                 onPress={() => setShowCategoryModal(true)}
                 onClear={
@@ -649,8 +649,8 @@ export default function HomeScreen({ navigation }) {
               {/* Botón Calificación */}
               <FilterChip
                 title={ratingLabel}
-                color={ratingTone.color}
-                accent={ratingTone.accent}
+                color={filterTone.color}
+                accent={filterTone.accent}
                 active={selectedRating !== null}
                 onPress={() => setShowRatingModal(true)}
                 onClear={
@@ -676,14 +676,18 @@ export default function HomeScreen({ navigation }) {
 
         {/* HEADER RESTAURANTES */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>
-            {hasFilters || searchText
-              ? `Resultados (${filteredRestaurants.length})`
-              : "Restaurantes"}
-          </Text>
+          <View style={styles.sectionHeaderTitleGroup}>
+            <Text style={styles.sectionTitle}>
+              {hasFilters || searchText
+                ? `Resultados (${filteredRestaurants.length})`
+                : "Restaurantes"}
+            </Text>
+            <View style={styles.sectionLine} />
+          </View>
 
           {!hasFilters && !searchText && (
             <TouchableOpacity
+              style={styles.verMasPill}
               onPress={() =>
                 navigation.navigate("TopRatedScreen", { restaurants })
               }
@@ -788,6 +792,15 @@ function FilterChip({ title, color, accent, active, onPress, onClear }) {
   );
 }
 
+function HomeSectionHeader({ title }) {
+  return (
+    <View style={styles.homeSectionHeader}>
+      <Text style={styles.homeSectionTitle}>{title}</Text>
+      <View style={styles.homeSectionLine} />
+    </View>
+  );
+}
+
 /* =============================
    ESTILOS
 ==============================*/
@@ -837,16 +850,18 @@ const styles = StyleSheet.create({
   sectionCard: {
     backgroundColor: "white",
     marginHorizontal: 16,
-    padding: 16,
-    borderRadius: 16,
+    marginTop: 2,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 20,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     elevation: 3,
-    shadowColor: "#000",
+    shadowColor: "#27AE60",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.09,
+    shadowRadius: 7,
   },
 
   newTopHeader: {
@@ -912,22 +927,24 @@ const styles = StyleSheet.create({
   },
 
   sectionTitleWhite: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "black",
+    fontSize: 17,
+    fontWeight: "800",
+    color: "#222",
   },
 
   sectionSubtitleWhite: {
-    color: "gray",
+    color: "#888",
     fontSize: 13,
+    marginTop: 2,
   },
 
   verMasButton: {
-    backgroundColor: "#fff",
+    backgroundColor: "#E8F8F0",
     paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     borderRadius: 20,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: "#BFE8D0",
   },
 
   verMasButtonText: {
@@ -938,9 +955,16 @@ const styles = StyleSheet.create({
   /* ===== FILTROS ===== */
 
   filtersWrapper: {
-    paddingTop: 16,
-    paddingBottom: 8,
-    paddingHorizontal: 12,
+    backgroundColor: "#fff",
+    marginHorizontal: 16,
+    borderRadius: 20,
+    padding: 12,
+    marginBottom: 20,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 6,
   },
 
   filtersRow: {
@@ -956,17 +980,13 @@ const styles = StyleSheet.create({
 
   chip: {
     backgroundColor: "#fff",
-    borderRadius: 18,
-    paddingVertical: 8,
+    borderRadius: 14,
+    paddingVertical: 11,
     paddingHorizontal: 8,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    elevation: 0,
     borderWidth: 1.5,
     borderColor: "transparent",
   },
@@ -1019,14 +1039,13 @@ const styles = StyleSheet.create({
 
   clearAllButton: {
     alignSelf: "center",
-    marginTop: 10,
-    paddingVertical: 5,
+    marginTop: 12,
+    paddingVertical: 8,
     paddingHorizontal: 16,
-    borderRadius: 20,
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    elevation: 1,
+    borderRadius: 14,
+    backgroundColor: "#F4F6F4",
+    borderWidth: 1.2,
+    borderColor: "#E0E0E0",
   },
 
   clearAllText: {
@@ -1037,17 +1056,66 @@ const styles = StyleSheet.create({
 
   /* ===== SECCIÓN RESTAURANTES ===== */
 
+  homeSectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    marginBottom: 10,
+    marginTop: 16,
+  },
+
+  homeSectionTitle: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#444",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    marginRight: 10,
+  },
+
+  homeSectionLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#E0E0E0",
+  },
+
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 16,
-    marginBottom: 8,
+    paddingHorizontal: 20,
+    marginBottom: 10,
+  },
+
+  sectionHeaderTitleGroup: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 12,
   },
 
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#444",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    marginRight: 10,
+  },
+
+  sectionLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#E0E0E0",
+  },
+
+  verMasPill: {
+    backgroundColor: "#E8F8F0",
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: "#BFE8D0",
   },
 
   verMas: {

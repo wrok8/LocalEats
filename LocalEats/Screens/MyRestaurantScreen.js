@@ -22,6 +22,7 @@ import {
 } from "firebase/firestore";
 
 import { db } from "../firebaseConfig";
+import { exportRestaurantProfileTxt } from "../Logs/FileManager";
 
 const GREEN = "#27AE60";
 const DARK_GREEN = "#1A5C35";
@@ -194,6 +195,16 @@ function RestaurantDetail({ item, onBack }) {
   const gallery = item.gallery || item.images || [];
   const cover = item.image || gallery[0];
 
+  async function handleExportProfile() {
+    try {
+      await exportRestaurantProfileTxt(item);
+      Alert.alert("Listo", "La ficha del restaurante se generó correctamente");
+    } catch (error) {
+      console.log("Error generando ficha:", error);
+      Alert.alert("Error", "No se pudo generar el archivo del restaurante");
+    }
+  }
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.detailHeader}>
@@ -225,6 +236,14 @@ function RestaurantDetail({ item, onBack }) {
       </View>
 
       <View style={styles.detailBody}>
+        <TouchableOpacity
+          style={styles.exportProfileButton}
+          onPress={handleExportProfile}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.exportProfileText}>Generar promoción .txt</Text>
+        </TouchableOpacity>
+
         <Section title="Estado de revisión">
           <View style={[
             styles.statusLarge,
@@ -663,6 +682,27 @@ const styles = StyleSheet.create({
 
   detailBody: {
     padding: 16,
+  },
+
+  exportProfileButton: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    paddingVertical: 14,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#BFE8D0",
+    marginBottom: 16,
+    elevation: 3,
+    shadowColor: GREEN,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+  },
+
+  exportProfileText: {
+    color: GREEN,
+    fontSize: 14,
+    fontWeight: "800",
   },
 
   section: {

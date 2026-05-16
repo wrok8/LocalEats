@@ -402,43 +402,41 @@ export default function MapScreen({ navigation }) {
             style={styles.card}
           >
             {selectedRestaurant.image && (
-              <Image
-                source={{
-                  uri: selectedRestaurant.image
-                }}
-                style={
-                  styles.image
-                }
-              />
+              <View style={styles.imageWrapper}>
+                <Image
+                  source={{
+                    uri: selectedRestaurant.image
+                  }}
+                  style={
+                    styles.image
+                  }
+                />
+                <View style={styles.ratingBadge}>
+                  <Text style={styles.ratingBadgeText}>
+                    ⭐ {selectedRestaurant.rating || "N/A"}
+                  </Text>
+                </View>
+              </View>
             )}
 
-            <Text
-              style={styles.name}
-            >
-              {
-                selectedRestaurant.name
-              }
-            </Text>
-
-            <Text
-              style={
-                styles.rating
-              }
-            >
-              ⭐{" "}
-              {selectedRestaurant.rating ||
-                "N/A"}
-            </Text>
-
-            <Text
-              style={
-                styles.address
-              }
-            >
-              {
-                selectedRestaurant.address
-              }
-            </Text>
+            <View style={styles.cardBody}>
+              <View style={styles.cardTopRow}>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={styles.name}
+                    numberOfLines={1}
+                  >
+                    {selectedRestaurant.name}
+                  </Text>
+                  <Text
+                    style={styles.address}
+                    numberOfLines={2}
+                  >
+                    📍 {selectedRestaurant.address || selectedRestaurant.vicinity || "Sin dirección"}
+                  </Text>
+                </View>
+              </View>
+            </View>
 
             <View
               style={
@@ -448,10 +446,7 @@ export default function MapScreen({ navigation }) {
               <TouchableOpacity
                 style={[
                   styles.button,
-                  {
-                    backgroundColor:
-                      "#ccc"
-                  }
+                  styles.closeButton
                 ]}
                 onPress={() =>
                   setSelectedRestaurant(
@@ -460,9 +455,7 @@ export default function MapScreen({ navigation }) {
                 }
               >
                 <Text
-                  style={
-                    styles.buttonText
-                  }
+                  style={styles.closeButtonText}
                 >
                   Cerrar
                 </Text>
@@ -471,19 +464,14 @@ export default function MapScreen({ navigation }) {
               <TouchableOpacity
                 style={[
                   styles.button,
-                  {
-                    backgroundColor:
-                      "#3498DB"
-                  }
+                  styles.routeButton
                 ]}
                 onPress={
                   startNavigation
                 }
               >
                 <Text
-                  style={
-                    styles.buttonText
-                  }
+                  style={styles.routeButtonText}
                 >
                   ¿Cómo llegar?
                 </Text>
@@ -492,10 +480,7 @@ export default function MapScreen({ navigation }) {
               <TouchableOpacity
                 style={[
                   styles.button,
-                  {
-                    backgroundColor:
-                      "#27AE60"
-                  }
+                  styles.detailsButton
                 ]}
                 onPress={() =>
                   navigation.navigate(
@@ -534,18 +519,19 @@ const styles =
     },
 
     userMarker: {
-      width: 18,
-      height: 18,
-      borderRadius: 9,
+      width: 20,
+      height: 20,
+      borderRadius: 10,
       backgroundColor:
-        "#3498DB",
+        "#27AE60",
       borderWidth: 3,
-      borderColor: "#fff"
+      borderColor: "#fff",
+      elevation: 4
     },
 
     cardContainer: {
       position: "absolute",
-      bottom: 50,
+      bottom: 46,
       left: 16,
       right: 16,
       marginBottom: 30
@@ -554,50 +540,114 @@ const styles =
     card: {
       backgroundColor:
         "#fff",
-      borderRadius: 16,
-      padding: 12,
-      elevation: 5
+      borderRadius: 20,
+      padding: 0,
+      overflow: "hidden",
+      elevation: 6,
+      shadowColor: "#1A5C35",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.14,
+      shadowRadius: 10
+    },
+
+    imageWrapper: {
+      position: "relative"
     },
 
     image: {
       width: "100%",
-      height: 140,
-      borderRadius: 12,
-      marginBottom: 8
+      height: 150
+    },
+
+    ratingBadge: {
+      position: "absolute",
+      bottom: 10,
+      left: 12,
+      backgroundColor: "rgba(0,0,0,0.62)",
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 18
+    },
+
+    ratingBadgeText: {
+      color: "#fff",
+      fontSize: 12,
+      fontWeight: "800"
+    },
+
+    cardBody: {
+      paddingHorizontal: 14,
+      paddingTop: 14,
+      paddingBottom: 2
+    },
+
+    cardTopRow: {
+      flexDirection: "row",
+      alignItems: "flex-start"
     },
 
     name: {
       fontSize: 18,
-      fontWeight: "bold"
-    },
-
-    rating: {
-      fontSize: 14,
-      marginTop: 4
+      fontWeight: "900",
+      color: "#222",
+      marginBottom: 4
     },
 
     address: {
       fontSize: 13,
-      color: "#555",
-      marginTop: 4
+      color: "#777",
+      lineHeight: 18
     },
 
     buttonsRow: {
       flexDirection: "row",
       justifyContent:
         "space-between",
-      marginTop: 12
+      gap: 8,
+      padding: 14,
+      paddingTop: 12
     },
 
     button: {
-      paddingVertical: 8,
-      paddingHorizontal: 10,
-      borderRadius: 12
+      flex: 1,
+      paddingVertical: 11,
+      paddingHorizontal: 8,
+      borderRadius: 14,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+
+    closeButton: {
+      backgroundColor: "#F4F6F4",
+      borderWidth: 1.2,
+      borderColor: "#E0E0E0"
+    },
+
+    routeButton: {
+      backgroundColor: "#E8F8F0",
+      borderWidth: 1.2,
+      borderColor: "#BFE8D0"
+    },
+
+    detailsButton: {
+      backgroundColor: "#27AE60"
     },
 
     buttonText: {
       color: "#fff",
-      fontWeight: "bold",
+      fontWeight: "800",
+      fontSize: 12
+    },
+
+    closeButtonText: {
+      color: "#666",
+      fontWeight: "800",
+      fontSize: 12
+    },
+
+    routeButtonText: {
+      color: "#1A5C35",
+      fontWeight: "800",
       fontSize: 12
     },
 
@@ -607,8 +657,14 @@ const styles =
       left: 16,
       backgroundColor:
         "#fff",
-      padding: 12,
-      borderRadius: 12
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+      borderRadius: 16,
+      elevation: 4,
+      shadowColor: "#1A5C35",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.12,
+      shadowRadius: 6
     },
 
     routeInfoText: {
@@ -622,8 +678,10 @@ const styles =
       right: 16,
       backgroundColor:
         "#E74C3C",
-      padding: 12,
-      borderRadius: 12
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+      borderRadius: 16,
+      elevation: 4
     },
 
     followButton: {
@@ -631,8 +689,10 @@ const styles =
       bottom: 120,
       right: 16,
       backgroundColor:
-        "#3498DB",
-      padding: 12,
-      borderRadius: 12
+        "#1A5C35",
+      paddingVertical: 11,
+      paddingHorizontal: 14,
+      borderRadius: 16,
+      elevation: 4
     }
   });

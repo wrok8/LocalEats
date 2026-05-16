@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -22,6 +22,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import { LinearGradient } from "expo-linear-gradient";
+import { cacheFavorites, logError } from "../Logs/FileManager";
 
 const { width } = Dimensions.get("window");
 const GREEN = "#27AE60";
@@ -46,8 +47,10 @@ export default function FavoritesScreen({ navigation }) {
       const snap = await getDocs(collection(db, "users", user.uid, "favorites"));
       const data = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       setFavorites(data);
+      await cacheFavorites(user.uid, data);
     } catch (error) {
       console.log("Error cargando favoritos:", error);
+      await logError("FavoritesScreen.loadFavorites", error);
     } finally {
       setLoading(false);
     }
@@ -126,6 +129,7 @@ export default function FavoritesScreen({ navigation }) {
             : "Aún no tienes favoritos"}
         </Text>
       </LinearGradient>
+
 
       {/* LISTA VACÍA */}
       {favorites.length === 0 ? (
@@ -422,3 +426,4 @@ const styles = StyleSheet.create({
   },
   removeBtnText: { color: "#E74C3C", fontWeight: "700", fontSize: 14 },
 });
+

@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
   reviewBox: {
     backgroundColor: "#fff",
     margin: 16,
-    marginTop: -14,
+    marginTop: 18,
     padding: 16,
     borderRadius: 20,
     elevation: 4,
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
   alreadyBox: {
     backgroundColor: "#E8F8F0",
     margin: 16,
-    marginTop: -14,
+    marginTop: 18,
     padding: 16,
     borderRadius: 18,
     borderLeftWidth: 4,

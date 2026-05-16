@@ -19,6 +19,7 @@ import {
   getDocs,
   doc,
   updateDoc,
+  writeBatch,
 } from "firebase/firestore";
 
 import { db } from "../firebaseConfig";
@@ -72,7 +73,7 @@ export default function AdminRestaurantRequestsScreen({ navigation }) {
         { text: "Cancelar", style: "cancel" },
         {
           text: "Aprobar",
-          onPress: () => approveRestaurant(item.id),
+          onPress: () => approveRestaurant(item),
         },
       ]
     );
@@ -93,15 +94,39 @@ export default function AdminRestaurantRequestsScreen({ navigation }) {
     );
   }
 
-  async function approveRestaurant(id) {
+  async function approveRestaurant(item) {
     try {
-      setProcessingId(id);
+      setProcessingId(item.id);
 
-      await updateDoc(doc(db, "restaurants", id), {
+      const batch = writeBatch(db);
+      const restaurantRef = doc(db, "restaurants", item.id);
+
+      batch.update(restaurantRef, {
         status: "approved",
+        approvedAt: new Date(),
       });
 
-      Alert.alert("Aprobado", "El restaurante fue aprobado correctamente");
+      if (item.ownerId) {
+        const ownerRef = doc(db, "users", item.ownerId);
+        batch.set(
+          ownerRef,
+          {
+            role: "owner",
+            ownerSince: new Date(),
+            updatedAt: new Date(),
+          },
+          { merge: true }
+        );
+      }
+
+      await batch.commit();
+
+      Alert.alert(
+        "Aprobado",
+        item.ownerId
+          ? "El restaurante fue aprobado y el usuario ahora es propietario."
+          : "El restaurante fue aprobado, pero no tenía un propietario asociado."
+      );
 
       setSelectedRestaurant(null);
       await loadPendingRestaurants();

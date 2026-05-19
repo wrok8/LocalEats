@@ -29,6 +29,7 @@ const DARK_GREEN = "#1A5C35";
 const RED = "#E74C3C";
 const BG = "#F4F6F4";
 
+// Lista los restaurantes creados por el usuario actual.
 export default function EditRestaurantScreen({ navigation }) {
   const [restaurants, setRestaurants] = useState([]);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
@@ -44,6 +45,7 @@ export default function EditRestaurantScreen({ navigation }) {
     return unsub;
   }, [navigation]);
 
+  // Refresca los restaurantes cada vez que la pantalla vuelve al foco.
   async function loadMyRestaurants() {
     try {
       setLoading(true);
@@ -137,6 +139,7 @@ export default function EditRestaurantScreen({ navigation }) {
   );
 }
 
+// Tarjeta resumida con estado y datos basicos del restaurante.
 function RestaurantCard({ item, onPress }) {
   const cover = item.image || item.images?.[0] || item.gallery?.[0];
 
@@ -191,10 +194,12 @@ function RestaurantCard({ item, onPress }) {
   );
 }
 
+// Detalle del restaurante propio, incluyendo exportacion y metricas.
 function RestaurantDetail({ item, onBack }) {
   const gallery = item.gallery || item.images || [];
   const cover = item.image || gallery[0];
 
+  // Genera una ficha de texto para promocionar el restaurante.
   async function handleExportProfile() {
     try {
       await exportRestaurantProfileTxt(item);
@@ -349,6 +354,7 @@ function RestaurantDetail({ item, onBack }) {
   );
 }
 
+// Bloque reutilizable para ordenar la informacion del detalle.
 function Section({ title, children }) {
   return (
     <View style={styles.section}>

@@ -28,6 +28,7 @@ const { width } = Dimensions.get("window");
 const GREEN = "#27AE60";
 const DARK_GREEN = "#1A5C35";
 
+// Muestra los restaurantes que el usuario guardo como favoritos.
 export default function FavoritesScreen({ navigation }) {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,6 +39,7 @@ export default function FavoritesScreen({ navigation }) {
     return unsub;
   }, [navigation]);
 
+  // Recarga favoritos al entrar para reflejar cambios hechos en otras pantallas.
   async function loadFavorites() {
     try {
       setLoading(true);
@@ -56,6 +58,7 @@ export default function FavoritesScreen({ navigation }) {
     }
   }
 
+  // Pide confirmacion antes de quitar un restaurante guardado.
   async function removeFavorite(restaurantId, name) {
   Alert.alert(
     "Quitar favorito",
@@ -171,6 +174,7 @@ export default function FavoritesScreen({ navigation }) {
    TARJETA DE FAVORITO
 ==============================*/
 
+// Tarjeta con foto, rating y acciones rapidas del favorito.
 function FavoriteCard({ item, onPress, onRemove }) {
   const ratingNum = parseFloat(item.rating) || 0;
 

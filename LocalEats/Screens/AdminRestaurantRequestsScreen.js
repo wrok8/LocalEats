@@ -30,6 +30,7 @@ const DARK_GREEN = "#1A5C35";
 const RED = "#E74C3C";
 const BG = "#F4F6F4";
 
+// Bandeja donde el administrador revisa restaurantes pendientes.
 export default function AdminRestaurantRequestsScreen({ navigation }) {
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,6 +41,7 @@ export default function AdminRestaurantRequestsScreen({ navigation }) {
     loadPendingRestaurants();
   }, []);
 
+  // Carga solo solicitudes que aun no han sido aprobadas o rechazadas.
   async function loadPendingRestaurants() {
     try {
       setLoading(true);
@@ -94,6 +96,7 @@ export default function AdminRestaurantRequestsScreen({ navigation }) {
     );
   }
 
+  // Aprueba el restaurante y marca al usuario como propietario.
   async function approveRestaurant(item) {
     try {
       setProcessingId(item.id);
@@ -138,6 +141,7 @@ export default function AdminRestaurantRequestsScreen({ navigation }) {
     }
   }
 
+  // Rechaza la solicitud sin borrar el registro, para conservar historial.
   async function rejectRestaurant(id) {
     try {
       setProcessingId(id);
@@ -225,6 +229,7 @@ export default function AdminRestaurantRequestsScreen({ navigation }) {
   );
 }
 
+// Vista resumida para decidir rapido si abrir, aprobar o rechazar.
 function RestaurantCard({ item, onView, onApprove, onReject, loading }) {
   const cover = item.image || item.images?.[0] || item.gallery?.[0];
 
@@ -286,6 +291,7 @@ function RestaurantCard({ item, onView, onApprove, onReject, loading }) {
   );
 }
 
+// Revision completa de datos antes de tomar una decision.
 function RestaurantDetail({ item, onBack, onApprove, onReject, loading }) {
   const gallery = item.gallery || item.images || [];
   const cover = item.image || gallery[0];

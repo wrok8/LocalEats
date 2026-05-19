@@ -25,6 +25,7 @@ import { getApprovedRestaurants } from "../Services/FirebaseRestaurantsApi";
 const GOOGLE_MAPS_API_KEY =
   "AIzaSyB31oDUBv6iWG87Cco9YAju3MAKp01Tdqs";
 
+// Mapa con restaurantes cercanos, seleccion y ruta hacia el destino.
 export default function MapScreen({ navigation }) {
   const mapRef = useRef(null);
 
@@ -48,6 +49,7 @@ export default function MapScreen({ navigation }) {
   useEffect(() => {
     let locationSubscription;
 
+    // Carga ubicacion, restaurantes y seguimiento en tiempo real.
     async function loadMapData() {
       try {
         const { status } =
@@ -151,6 +153,7 @@ export default function MapScreen({ navigation }) {
     };
   }, [activeRoute, followUser]);
 
+  // Obtiene coordenadas aunque vengan de Google o Firestore.
   function getRestaurantCoordinates(
     restaurant
   ) {
@@ -164,6 +167,7 @@ export default function MapScreen({ navigation }) {
     };
   }
 
+  // Abre la tarjeta inferior del restaurante elegido.
   function handleRestaurantSelect(
     restaurant
   ) {
@@ -173,6 +177,7 @@ export default function MapScreen({ navigation }) {
     setRouteInfo(null);
   }
 
+  // Inicia ruta y registra el click de "como llegar".
   async function startNavigation() {
   if (!selectedRestaurant) return;
 

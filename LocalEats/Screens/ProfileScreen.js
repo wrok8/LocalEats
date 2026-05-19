@@ -46,6 +46,7 @@ const OWNER_MENU = [
   { icon: "📊", label: "Estadísticas", screen: "Analytics", color: "#E8F4FD" },
 ];
 
+// Perfil del usuario con accesos segun su rol.
 export default function ProfileScreen({ navigation }) {
   const [userData, setUserData] = useState(null);
   const [ownerStats, setOwnerStats] = useState({
@@ -66,6 +67,7 @@ export default function ProfileScreen({ navigation }) {
     return unsub;
   }, [navigation]);
 
+  // Permite cambiar la foto de perfil desde la galeria.
   async function pickProfileImage() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -82,6 +84,7 @@ export default function ProfileScreen({ navigation }) {
     }
   }
 
+ // Carga datos del usuario y, si aplica, sus metricas de propietario.
  async function loadUser() {
   try {
     const auth = getAuth();
@@ -105,6 +108,7 @@ export default function ProfileScreen({ navigation }) {
     }
   }
 
+  // Confirma antes de cerrar sesion y borrar credenciales guardadas.
   const handleLogout = () => {
   Alert.alert(
     "Cerrar sesión",
@@ -129,6 +133,7 @@ export default function ProfileScreen({ navigation }) {
   );
 };
   
+    // Suma metricas de todos los restaurantes del propietario.
     async function loadOwnerStats(uid) {
     try {
       const q = query(
@@ -313,6 +318,7 @@ export default function ProfileScreen({ navigation }) {
    SUBCOMPONENTES
 ==============================*/
 
+// Titulo de seccion con linea para separar bloques del perfil.
 function SectionHeader({ title }) {
   return (
     <View style={styles.sectionHeaderRow}>
@@ -322,6 +328,7 @@ function SectionHeader({ title }) {
   );
 }
 
+// Fila de menu que abre una pantalla del perfil.
 function MenuRow({ item, onPress }) {
   return (
     <TouchableOpacity

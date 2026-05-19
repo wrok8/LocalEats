@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, TextInput, Text, View } from 'react-native';
 
+// Campo de texto reutilizable con etiqueta para formularios.
 export default function AppTextInput({
   placeholder,
   label,

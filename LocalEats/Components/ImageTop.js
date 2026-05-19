@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
+// Encabezado visual simple usado como parte superior de algunas vistas.
 export default function ImgTop({ title }) {
   return (
     <View style={styles.container}>

@@ -4,6 +4,7 @@ const API_KEY = "AIzaSyB31oDUBv6iWG87Cco9YAju3MAKp01Tdqs";
  * Obtiene restaurantes cercanos usando Nearby Search
  * y luego pide detalles de cada uno con Place Details API
  */
+// Busca restaurantes cercanos usando la ubicacion actual del usuario.
 export const getNearbyRestaurants = async (lat, lng) => {
   try {
     const response = await fetch(

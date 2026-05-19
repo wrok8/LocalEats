@@ -24,6 +24,7 @@ const GREEN = "#27AE60";
 const DARK_GREEN = "#1A5C35";
 const LIGHT_GREEN = "#E8F8F0";
 
+// Panel de metricas basicas para el restaurante del propietario.
 export default function AnalyticsScreen({ navigation }) {
   const [restaurant, setRestaurant] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -33,6 +34,7 @@ export default function AnalyticsScreen({ navigation }) {
     loadAnalytics();
   }, []);
 
+  // Busca el restaurante asociado al usuario actual.
   async function loadAnalytics() {
     try {
       const user = getAuth().currentUser;
@@ -294,6 +296,7 @@ export default function AnalyticsScreen({ navigation }) {
    SUBCOMPONENTES
 ==============================*/
 
+// Resume una metrica importante en una tarjeta facil de leer.
 function MetricCard({ icon, value, label, color, accent }) {
   return (
     <View style={[styles.metricCard, { backgroundColor: color }]}>
@@ -321,6 +324,7 @@ function ConversionStat({ label, value, color }) {
   );
 }
 
+// Normaliza cada barra segun el valor mas alto de la seccion.
 function EngagementRow({ icon, label, value, max, color }) {
   const percent = max > 0 ? (value / max) * 100 : 0;
   return (

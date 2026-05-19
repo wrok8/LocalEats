@@ -11,6 +11,7 @@ export const PATHS = {
   cacheFavorites: `${BASE_DIR}cache/favorites.txt`,
 };
 
+// Prepara las carpetas locales que usa la app para logs, cache y exports.
 export async function initFileSystem() {
   try {
     await ensureDirectory(PATHS.logs);
@@ -28,6 +29,7 @@ export async function logInfo(context, message) {
   } catch (_) {}
 }
 
+// Guarda errores con contexto para poder revisarlos despues.
 export async function logError(context, error) {
   try {
     const message = error instanceof Error ? error.message : String(error);
@@ -77,6 +79,7 @@ export async function shareErrorLog() {
   }
 }
 
+// Crea una copia local de favoritos por si se necesita consultarlos luego.
 export async function cacheFavorites(userId, favorites) {
   try {
     await ensureDirectory(PATHS.cache);
@@ -115,6 +118,7 @@ export async function readCachedFavorites() {
   }
 }
 
+// Genera una ficha de texto lista para compartir el restaurante.
 export async function exportRestaurantProfileTxt(restaurant) {
   try {
     await ensureDirectory(PATHS.exports);
@@ -248,6 +252,7 @@ export async function getTotalStorageUsed() {
   }
 }
 
+// Crea la carpeta si todavia no existe.
 async function ensureDirectory(path) {
   const info = await FileSystem.getInfoAsync(path);
   if (!info.exists) {
@@ -280,6 +285,7 @@ function timestamp() {
   });
 }
 
+// Limpia el nombre para que sea seguro como archivo.
 function safeFileName(value) {
   const fileName = value
     .toLowerCase()

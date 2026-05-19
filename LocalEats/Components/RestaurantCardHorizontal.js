@@ -3,6 +3,7 @@ import { View, Text, Image, StyleSheet, TouchableOpacity, Dimensions } from "rea
 
 const { width } = Dimensions.get("window");
 
+// Tarjeta compacta para mostrar restaurantes en listas horizontales.
 export default function RestaurantCardHorizontal({ item, navigation }) {
 
   if (!item) return null;

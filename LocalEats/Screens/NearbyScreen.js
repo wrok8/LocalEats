@@ -10,6 +10,7 @@ import {
 import RestaurantCardVertical from "../Components/RestaurantCardVertical";
 import ImgTop from "../Components/ImageTop";
 
+// Lista extendida de restaurantes cercanos con busqueda simple.
 export default function NearbyScreen({ navigation, route }) {
 
   const { restaurants } = route.params;
@@ -21,6 +22,7 @@ export default function NearbyScreen({ navigation, route }) {
     filterRestaurants(searchText);
   }, [searchText]);
 
+  // Filtra por nombre o direccion mientras el usuario escribe.
   function filterRestaurants(text) {
 
     if (!text) {

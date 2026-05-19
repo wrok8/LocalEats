@@ -29,6 +29,7 @@ import { initFileSystem } from "./Logs/FileManager";
 
 const Stack = createNativeStackNavigator();
 
+// Punto de entrada visual: decide que pantalla se muestra segun la sesion.
 export default function App() {
   useEffect(() => {
     initFileSystem();

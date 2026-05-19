@@ -30,6 +30,7 @@ import {
 const { width } =
   Dimensions.get("window");
 
+// Registro basico: crea usuario y su perfil inicial en Firestore.
 export default function RegisterScreen({
   navigation
 }) {
@@ -39,6 +40,7 @@ export default function RegisterScreen({
   const [password, setPassword] =
     useState("");
 
+  // Valida datos y guarda el rol inicial como usuario normal.
   const registerUser =
     async () => {
       if (
@@ -196,6 +198,7 @@ export default function RegisterScreen({
 }
 
 /* LÍNEA DECORATIVA */
+// Linea decorativa inferior del formulario.
 function SvgLineal() {
   return (
     <Svg

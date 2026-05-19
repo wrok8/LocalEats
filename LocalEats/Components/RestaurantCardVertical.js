@@ -7,6 +7,7 @@ import {
   Image
 } from "react-native";
 
+// Tarjeta vertical con la informacion principal del restaurante.
 export default function RestaurantCardVertical({ item, navigation }) {
 
   if (!item) return null;

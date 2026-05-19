@@ -14,6 +14,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "../firebaseConfig";
 import { LinearGradient } from "expo-linear-gradient";
 
+// Preferencias locales de la cuenta y salida de sesion.
 export default function PreferencesScreen({ navigation }) {
 
   const [darkMode, setDarkMode] = useState(false);
@@ -23,6 +24,7 @@ export default function PreferencesScreen({ navigation }) {
     loadPreferences();
   }, []);
 
+  // Recupera ajustes guardados en el dispositivo.
   const loadPreferences = async () => {
     const savedTheme = await AsyncStorage.getItem("darkMode");
     const savedNotifications = await AsyncStorage.getItem("notifications");
@@ -31,18 +33,21 @@ export default function PreferencesScreen({ navigation }) {
     if (savedNotifications !== null) setNotifications(JSON.parse(savedNotifications));
   };
 
+  // Guarda el cambio de tema para futuras sesiones.
   const toggleTheme = async () => {
     const newValue = !darkMode;
     setDarkMode(newValue);
     await AsyncStorage.setItem("darkMode", JSON.stringify(newValue));
   };
 
+  // Mantiene la preferencia de notificaciones en almacenamiento local.
   const toggleNotifications = async () => {
     const newValue = !notifications;
     setNotifications(newValue);
     await AsyncStorage.setItem("notifications", JSON.stringify(newValue));
   };
 
+  // Cierra sesion despues de confirmar con el usuario.
   const handleLogout = () => {
     Alert.alert(
       "Cerrar sesión",

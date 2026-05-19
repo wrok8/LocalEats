@@ -10,6 +10,7 @@ import {
 import RestaurantCardVertical from "../Components/RestaurantCardVertical";
 import ImgTop from "../Components/ImageTop";
 
+// Muestra restaurantes ordenados por mejor calificacion.
 export default function TopRatedScreen({ navigation, route }) {
 
   const { restaurants } = route.params;
@@ -27,6 +28,7 @@ export default function TopRatedScreen({ navigation, route }) {
     filterRestaurants(searchText);
   }, [searchText]);
 
+  // Busca dentro de la lista ya ordenada por rating.
   function filterRestaurants(text) {
 
     if (!text) {

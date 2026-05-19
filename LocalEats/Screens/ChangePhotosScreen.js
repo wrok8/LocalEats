@@ -31,6 +31,7 @@ const PHOTO_SIZE = (width - 52) / 3;
 const GREEN = "#27AE60";
 const DARK_GREEN = "#1A5C35";
 
+// Permite actualizar portada y galeria del restaurante.
 export default function ChangePhotosScreen({ navigation }) {
   const [restaurantId, setRestaurantId] = useState("");
   const [mainImage, setMainImage] = useState("");
@@ -42,6 +43,7 @@ export default function ChangePhotosScreen({ navigation }) {
     loadRestaurant();
   }, []);
 
+  // Carga las fotos actuales del restaurante del propietario.
   async function loadRestaurant() {
     try {
       const user = getAuth().currentUser;
@@ -64,6 +66,7 @@ export default function ChangePhotosScreen({ navigation }) {
     }
   }
 
+  // Selecciona la imagen principal con formato ancho.
   async function pickMainImage() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -76,6 +79,7 @@ export default function ChangePhotosScreen({ navigation }) {
     }
   }
 
+  // Agrega varias fotos a la galeria sin pasar el limite.
   async function pickGalleryImages() {
     if (gallery.length >= 8) {
       Alert.alert("Límite alcanzado", "Máximo 8 fotos en la galería.");
@@ -92,6 +96,7 @@ export default function ChangePhotosScreen({ navigation }) {
     }
   }
 
+  // Confirma antes de quitar una foto de la galeria.
   function removeGalleryPhoto(index) {
     Alert.alert("Eliminar foto", "¿Estás seguro?", [
       { text: "Cancelar", style: "cancel" },
@@ -104,6 +109,7 @@ export default function ChangePhotosScreen({ navigation }) {
     ]);
   }
 
+  // Guarda portada y galeria en el documento del restaurante.
   async function savePhotos() {
     setSaving(true);
     try {
@@ -250,6 +256,7 @@ export default function ChangePhotosScreen({ navigation }) {
   );
 }
 
+// Encabezado corto para cada bloque de fotos.
 function SectionTitle({ title, subtitle }) {
   return (
     <View style={styles.sectionTitleWrapper}>

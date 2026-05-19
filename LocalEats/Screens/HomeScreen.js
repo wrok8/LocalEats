@@ -104,6 +104,7 @@ const PASTEL_RATING_OPTIONS = [
   { label: "Solo 5 estrellas", value: 5, icon: "★" },
 ];
 
+// Modal reutilizable para escoger una opcion de filtro.
 function FilterModal({ visible, title, options, selectedValue, onSelect, onClose }) {
   return (
     <Modal
@@ -195,6 +196,7 @@ function FilterModal({ visible, title, options, selectedValue, onSelect, onClose
    PANTALLA PRINCIPAL
 ==============================*/
 
+// Pantalla principal: junta busqueda, filtros y restaurantes cercanos.
 export default function HomeScreen({ navigation }) {
 
   const [restaurants, setRestaurants] = useState([]);
@@ -225,6 +227,7 @@ export default function HomeScreen({ navigation }) {
     loadRestaurants();
   }, []);
 
+  // Personaliza el saludo con el nombre guardado en el perfil.
   async function loadUserName() {
     try {
       const user = getAuth().currentUser;
@@ -326,6 +329,7 @@ export default function HomeScreen({ navigation }) {
      OBTENER UBICACIÓN Y API
   ==============================*/
 
+  // Convierte restaurantes propios a la misma forma que los de Google.
   async function getApprovedRestaurantsFromFirestore() {
   const q = query(
     collection(db, "restaurants"),
@@ -369,6 +373,7 @@ export default function HomeScreen({ navigation }) {
   });
 }
 
+  // Pide ubicacion y combina resultados externos con restaurantes aprobados.
   async function loadRestaurants() {
   try {
     const { status } = await Location.requestForegroundPermissionsAsync();
@@ -411,6 +416,7 @@ export default function HomeScreen({ navigation }) {
      CALCULAR DISTANCIA
   ==============================*/
 
+  // Calcula distancia en kilometros entre dos coordenadas.
   function getDistance(lat1, lon1, lat2, lon2) {
     const R = 6371;
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -429,6 +435,7 @@ export default function HomeScreen({ navigation }) {
      ORDENAR POR DISTANCIA
   ==============================*/
 
+  // Ordena la lista para mostrar primero lo mas cercano.
   function sortRestaurantsByDistance() {
     const sorted = restaurants
       .map((r) => {
@@ -742,6 +749,7 @@ export default function HomeScreen({ navigation }) {
    CHIP DE FILTRO
 ==============================*/
 
+// Chip pequeno que abre filtro y permite limpiarlo si esta activo.
 function FilterChip({ title, color, accent, active, onPress, onClear }) {
   return (
     <View style={styles.chipWrapper}>
@@ -792,6 +800,7 @@ function FilterChip({ title, color, accent, active, onPress, onClear }) {
   );
 }
 
+// Encabezado discreto para separar bloques dentro del inicio.
 function HomeSectionHeader({ title }) {
   return (
     <View style={styles.homeSectionHeader}>

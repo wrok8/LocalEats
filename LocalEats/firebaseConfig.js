@@ -15,6 +15,7 @@ const firebaseConfig = {
   appId: "1:530872439346:web:08690007a22970ac7b622b",
 };
 
+// Inicializa Firebase una sola vez para compartir auth, db y storage.
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);

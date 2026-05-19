@@ -4,12 +4,14 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebaseConfig";
 
+// Pantalla inicial: intenta entrar con sesion recordada.
 export default function SplashScreen({ navigation }) {
 
   useEffect(() => {
     checkSavedSession();
   }, []);
 
+  // Si hay credenciales guardadas, hace auto login; si falla, limpia datos.
   async function checkSavedSession() {
     try {
       const savedEmail = await AsyncStorage.getItem("userEmail");

@@ -12,6 +12,7 @@ import {
 
 import { db } from "../firebaseConfig";
 
+// Guarda un restaurante en favoritos y actualiza su contador.
 export async function addFavorite(userId, restaurantId) {
   await addDoc(collection(db, "favorites"), {
     userId,
@@ -24,6 +25,7 @@ export async function addFavorite(userId, restaurantId) {
   });
 }
 
+// Quita un favorito sin dejar el contador en numeros negativos.
 export async function removeFavorite(userId, restaurantId) {
   const q = query(
     collection(db, "favorites"),

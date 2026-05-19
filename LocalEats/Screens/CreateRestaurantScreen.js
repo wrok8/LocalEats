@@ -48,6 +48,7 @@ const CATEGORY_CHIPS = [
 
 const STEPS = ["Información", "Horario", "Fotos"];
 
+// Flujo por pasos para que un propietario registre su restaurante.
 export default function CreateRestaurantScreen({ navigation }) {
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
@@ -64,6 +65,7 @@ export default function CreateRestaurantScreen({ navigation }) {
     DAYS.map((day) => ({ day, open: "", close: "", closed: false }))
   );
 
+  // Actualiza solo el dia que el usuario esta editando.
   function updateSchedule(index, field, value) {
     const updated = [...schedule];
     updated[index][field] = value;
@@ -76,6 +78,7 @@ export default function CreateRestaurantScreen({ navigation }) {
     );
   }
 
+  // Permite elegir varias fotos, respetando el limite del formulario.
   async function pickImage() {
     if (images.length >= 6) {
       Alert.alert("Límite", "Máximo 6 fotos");
@@ -93,6 +96,7 @@ export default function CreateRestaurantScreen({ navigation }) {
   }
 
   
+  // Sube cada foto a Cloudinary y devuelve las URLs finales.
   async function uploadImages() {
   const uploadedUrls = [];
 
@@ -131,6 +135,7 @@ export default function CreateRestaurantScreen({ navigation }) {
 }
 
 
+  // Revisa lo minimo necesario antes de avanzar de paso.
   function validateStep() {
     if (step === 0) {
       if (!name.trim()) { Alert.alert("Error", "El nombre es obligatorio"); return false; }
@@ -148,6 +153,7 @@ export default function CreateRestaurantScreen({ navigation }) {
     setStep((s) => Math.max(s - 1, 0));
   }
 
+  // Guarda la solicitud como pendiente para que un admin la revise.
   async function saveRestaurant() {
     if (images.length === 0) {
       Alert.alert("Fotos requeridas", "Agrega al menos una foto de tu restaurante");
@@ -523,6 +529,7 @@ export default function CreateRestaurantScreen({ navigation }) {
   );
 }
 
+// Etiqueta pequena para mantener ordenados los campos del formulario.
 function FieldLabel({ label }) {
   return <Text style={styles.fieldLabel}>{label}</Text>;
 }

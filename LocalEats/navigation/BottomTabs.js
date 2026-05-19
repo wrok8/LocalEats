@@ -9,6 +9,7 @@ import ProfileScreen from "../Screens/ProfileScreen";
 const Tab = createBottomTabNavigator();
 
 // Animacion de icono
+// Anima suavemente el icono activo del menu inferior.
 function AnimatedTabIcon({ focused, activeIcon, inactiveIcon }) {
   const scale = useRef(new Animated.Value(1)).current;
   const opacity = useRef(new Animated.Value(focused ? 1 : 0.6)).current;
@@ -39,6 +40,7 @@ function AnimatedTabIcon({ focused, activeIcon, inactiveIcon }) {
   );
 }
 
+// Agrupa las pantallas principales que viven dentro del tab bar.
 export default function BottomTabs() {
   return (
     <Tab.Navigator

@@ -28,6 +28,7 @@ const GREEN = "#27AE60";
 const DARK_GREEN = "#1A5C35";
 const BG = "#F4F6F4";
 
+// Vista completa del restaurante con fotos, contacto y acciones.
 export default function RestaurantDetailScreen({ route, navigation }) {
   const { restaurant } = route.params;
 
@@ -48,6 +49,7 @@ export default function RestaurantDetailScreen({ route, navigation }) {
     }, [])
   );
 
+  // Une portada, galeria y fotos externas sin repetir imagenes.
   function buildImages(data) {
     const all = [];
 
@@ -76,6 +78,7 @@ export default function RestaurantDetailScreen({ route, navigation }) {
       : ["https://via.placeholder.com/600x400?text=Sin+foto"];
   }
 
+  // Prepara datos iniciales y registra la visita.
   async function initializeScreen() {
     setImages(buildImages(restaurant));
 
@@ -86,6 +89,7 @@ export default function RestaurantDetailScreen({ route, navigation }) {
     setLoading(false);
   }
 
+  // Actualiza datos desde Firestore por si cambiaron recientemente.
   async function refreshRestaurantData() {
     try {
       if (!restaurant.id) return;
@@ -110,6 +114,7 @@ export default function RestaurantDetailScreen({ route, navigation }) {
     }
   }
 
+  // Suma una vista solo si el restaurante existe en Firestore.
   async function addView() {
     try {
       if (!restaurant.id) return;
@@ -127,6 +132,7 @@ export default function RestaurantDetailScreen({ route, navigation }) {
     }
   }
 
+  // Verifica si este restaurante ya esta guardado por el usuario.
   async function checkFavorite() {
     try {
       const user = getAuth().currentUser;
@@ -141,6 +147,7 @@ export default function RestaurantDetailScreen({ route, navigation }) {
     }
   }
 
+  // Guarda el restaurante y sincroniza el contador visible.
   async function addToFavorites() {
     try {
       const user = getAuth().currentUser;
@@ -395,6 +402,7 @@ export default function RestaurantDetailScreen({ route, navigation }) {
   );
 }
 
+// Tarjeta de informacion para secciones del detalle.
 function InfoCard({ title, icon, children }) {
   return (
     <View style={styles.infoCard}>
@@ -406,6 +414,7 @@ function InfoCard({ title, icon, children }) {
   );
 }
 
+// Fila tocable para abrir mapa, telefono o sitio web.
 function ActionRow({ icon, title, subtitle, onPress }) {
   return (
     <TouchableOpacity style={styles.actionRow} onPress={onPress} activeOpacity={0.8}>

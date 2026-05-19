@@ -6,8 +6,10 @@ import Button from '../Components/Button';
 
 const { width, height } = Dimensions.get("window");
 
+// Pantalla de bienvenida con accesos a login y registro.
 export default function LoginRegister({ navigation }) {
 
+  // Fondo superior con patron y gradiente de marca.
   function SvgTop() {
     return (
       <Svg
@@ -56,6 +58,7 @@ export default function LoginRegister({ navigation }) {
     );
   }
 
+  // Inserta el logo como imagen dentro de un SVG adaptable.
   function SvgLogo() {
     return (
       <Svg
@@ -86,6 +89,7 @@ export default function LoginRegister({ navigation }) {
     );
   }
 
+  // Linea decorativa inferior para cerrar la composicion.
   function SvgLineal() {
     return (
       <Svg

@@ -15,12 +15,14 @@ import { auth } from "../firebaseConfig";
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Inicia sesion y opcionalmente recuerda credenciales locales.
 export default function LoginScreen({ navigation }) {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
 
+  // Valida campos y entra a la app si Firebase acepta el acceso.
   const loginUser = async () => {
 
     if (!email || !password) {
@@ -101,6 +103,7 @@ export default function LoginScreen({ navigation }) {
 
 
 /* CHECKBOX */
+// Control para recordar sesion y mostrar acceso a recuperar contrasena.
 function AppCheckBox({ onForgotPress, isChecked, setChecked }) {
 
   return (
@@ -130,6 +133,7 @@ function AppCheckBox({ onForgotPress, isChecked, setChecked }) {
 
 
 /* LINEA SVG */
+// Linea decorativa que acompana el formulario.
 function SvgLineal() {
   return (
     <Svg width={width * 0.9} height={24}>

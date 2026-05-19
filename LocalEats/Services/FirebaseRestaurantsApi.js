@@ -7,6 +7,7 @@ import {
 
 import { db } from "../firebaseConfig";
 
+// Trae solo restaurantes ya aprobados para mostrarlos en la app.
 export async function getApprovedRestaurants() {
   try {
     const q = query(

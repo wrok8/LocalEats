@@ -14,6 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 const GREEN = "#27AE60";
 const DARK_GREEN = "#1A5C35";
 
+// Pantalla para leer y publicar resenas de un restaurante.
 export default function ReviewScreen({ route, navigation }) {
   const { restaurant } = route.params;
 
@@ -46,6 +47,7 @@ export default function ReviewScreen({ route, navigation }) {
     return () => unsubscribe();
   }, []);
 
+  // Guarda una unica resena por usuario y recalcula el promedio.
   async function sendReview() {
     if (hasReviewed) {
       Alert.alert("Aviso", "Ya has escrito una reseña para este restaurante.");
@@ -211,6 +213,7 @@ export default function ReviewScreen({ route, navigation }) {
   );
 }
 
+// Presenta una opinion de LocalEats o Google en el mismo formato.
 function ReviewCard({ item, currentUser }) {
   const isMine = item.userId === currentUser?.uid;
 

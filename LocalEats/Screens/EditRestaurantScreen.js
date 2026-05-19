@@ -39,6 +39,7 @@ const CATEGORY_CHIPS = [
   "Italiana", "Mexicana", "Vegano", "Café",
 ];
 
+// Formulario para editar los datos del restaurante del propietario.
 export default function EditRestaurantScreen({ navigation }) {
   const [restaurantId, setRestaurantId] = useState("");
   const [name, setName] = useState("");
@@ -56,6 +57,7 @@ export default function EditRestaurantScreen({ navigation }) {
     loadRestaurant();
   }, []);
 
+  // Carga el primer restaurante asociado al usuario actual.
   async function loadRestaurant() {
     try {
       const user = getAuth().currentUser;
@@ -85,6 +87,7 @@ export default function EditRestaurantScreen({ navigation }) {
     }
   }
 
+  // Selecciona una nueva imagen de portada desde la galeria.
   async function pickImage() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -95,12 +98,14 @@ export default function EditRestaurantScreen({ navigation }) {
     }
   }
 
+  // Agrega o quita categorias sin duplicarlas.
   function toggleType(type) {
     setTypes((prev) =>
       prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
     );
   }
 
+  // Valida lo basico y guarda los cambios en Firestore.
   async function saveChanges() {
 
     if (!name.trim()) {
@@ -130,6 +135,7 @@ export default function EditRestaurantScreen({ navigation }) {
     }
   }
 
+  // Elimina el restaurante junto con sus resenas internas.
   async function deleteRestaurant() {
   if (!restaurantId) {
     Alert.alert("Error", "No se encontró el restaurante");
@@ -391,6 +397,7 @@ export default function EditRestaurantScreen({ navigation }) {
 
 
 
+// Etiqueta simple para que el formulario respire mejor.
 function FieldLabel({ label }) {
   return <Text style={styles.fieldLabel}>{label}</Text>;
 }

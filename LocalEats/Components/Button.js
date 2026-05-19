@@ -1,5 +1,6 @@
 import { Pressable, Text } from "react-native";
 
+// Boton reutilizable para mantener el mismo estilo en varias pantallas.
 export default function Button({ title, onPress, variant }) {
   return (
     <Pressable

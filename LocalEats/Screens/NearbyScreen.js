@@ -41,12 +41,6 @@ export default function NearbyScreen({ navigation, route }) {
   return (
     <View style={styles.container}>
 
-      <ImageBackground
-        source={require("../assets/FondoInicio.png")}
-        style={styles.background}
-        imageStyle={styles.backgroundImage}
-      />
-
       <ImgTop title="Cerca de ti" />
 
       <View style={styles.searchContainer}>

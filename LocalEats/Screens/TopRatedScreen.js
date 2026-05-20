@@ -47,12 +47,7 @@ export default function TopRatedScreen({ navigation, route }) {
   return (
 
     <View style={styles.container}>
-      <ImageBackground
-              source={require("../assets/FondoInicio.png")}
-              style={styles.background}
-              imageStyle={styles.backgroundImage}
-            />
-      
+
             <ImgTop title="Restaurantes" />
       
             <View style={styles.searchContainer}>

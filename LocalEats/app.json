@@ -25,6 +25,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "2da5e353-69ae-4ef6-a9a9-8c80a5e95fca"
+      }
+    },
+    "owner": "wrok"
   }
 }

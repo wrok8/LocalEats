@@ -32,12 +32,12 @@ export default function LoginRegister({ navigation }) {
             height={1024}
             patternTransform="scale(0.4)"
           >
-            <Image
-              href={require("../assets/FondoPatron.png")}
+            {/* <Image
+              href={require("../assets/fondopatron.png")}
               width={1024}
               height={1024}
               opacity={0.15}
-            />
+            /> */}
           </Pattern>
         </Defs>
 

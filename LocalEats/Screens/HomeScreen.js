@@ -544,10 +544,6 @@ export default function HomeScreen({ navigation }) {
         contentContainerStyle={styles.scrollContent}
       >
         {/* HEADER */}
-        <ImageBackground
-          source={require("../assets/FondoInicio.png")}
-          style={styles.background}
-        >
 
           <LinearGradient
             colors={[
@@ -619,7 +615,6 @@ export default function HomeScreen({ navigation }) {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingLeft: 16, paddingBottom: 20 }}
           />
-        </ImageBackground>
 
         <HomeSectionHeader title="Explorar" />
 

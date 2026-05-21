@@ -26,6 +26,7 @@ import {
   auth,
   db
 } from "../firebaseConfig";
+import { logAudit } from "../Logs/FileManager";
 
 const { width } =
   Dimensions.get("window");
@@ -64,6 +65,13 @@ export default function RegisterScreen({
 
         const user =
           userCredential.user;
+        await logAudit({
+          action: "Registro de usuario",
+          storage: "Firebase Auth",
+          target: "auth/users",
+          detail: `correo: ${email}`,
+          userId: user.uid,
+        });
 
         // GUARDAR EN FIRESTORE
         await setDoc(
@@ -84,6 +92,13 @@ export default function RegisterScreen({
               new Date()
           }
         );
+        await logAudit({
+          action: "Se creo perfil inicial de usuario",
+          storage: "Firestore",
+          target: `users/${user.uid}`,
+          detail: "Campos: email, name, role, createdAt",
+          userId: user.uid,
+        });
 
         Alert.alert(
           "Éxito",

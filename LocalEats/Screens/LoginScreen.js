@@ -14,6 +14,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebaseConfig";
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { logAudit } from "../Logs/FileManager";
 
 // Inicia sesion y opcionalmente recuerda credenciales locales.
 export default function LoginScreen({ navigation }) {
@@ -32,14 +33,33 @@ export default function LoginScreen({ navigation }) {
 
     try {
 
-      await signInWithEmailAndPassword(auth, email, password);
+      const credential = await signInWithEmailAndPassword(auth, email, password);
+      await logAudit({
+        action: "Inicio de sesion",
+        storage: "Firebase Auth",
+        target: "auth/session",
+        detail: `correo: ${email}`,
+        userId: credential.user.uid,
+      });
 
       if (rememberMe) {
         await AsyncStorage.setItem("userEmail", email);
         await AsyncStorage.setItem("userPassword", password);
+        await logAudit({
+          action: "Se guardaron credenciales recordadas",
+          storage: "AsyncStorage",
+          target: "userEmail,userPassword",
+          userId: credential.user.uid,
+        });
       } else {
         await AsyncStorage.removeItem("userEmail");
         await AsyncStorage.removeItem("userPassword");
+        await logAudit({
+          action: "Se eliminaron credenciales recordadas",
+          storage: "AsyncStorage",
+          target: "userEmail,userPassword",
+          userId: credential.user.uid,
+        });
       }
 
       navigation.replace("MainTabs");

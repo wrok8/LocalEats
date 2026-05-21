@@ -24,6 +24,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import { LinearGradient } from "expo-linear-gradient";
+import { logAudit } from "../Logs/FileManager";
 
 const { width } = Dimensions.get("window");
 const PHOTO_SIZE = (width - 52) / 3;
@@ -52,6 +53,13 @@ export default function ChangePhotosScreen({ navigation }) {
         where("ownerId", "==", user.uid)
       );
       const snapshot = await getDocs(q);
+      await logAudit({
+        action: "Se consultaron fotos del restaurante del propietario",
+        storage: "Firestore",
+        target: "restaurants",
+        detail: `ownerId == ${user.uid}; resultados: ${snapshot.size}`,
+        userId: user.uid,
+      });
       if (!snapshot.empty) {
         const docData = snapshot.docs[0];
         const data = docData.data();
@@ -116,6 +124,13 @@ export default function ChangePhotosScreen({ navigation }) {
       await updateDoc(doc(db, "restaurants", restaurantId), {
         image: mainImage,
         gallery,
+      });
+      await logAudit({
+        action: "Se actualizaron fotos del restaurante",
+        storage: "Firestore",
+        target: `restaurants/${restaurantId}`,
+        detail: `galeria: ${gallery.length} fotos`,
+        userId: getAuth().currentUser?.uid,
       });
       Alert.alert("✅ Guardado", "Fotos actualizadas correctamente", [
         { text: "OK", onPress: () => navigation?.goBack() },

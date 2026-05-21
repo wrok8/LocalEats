@@ -33,6 +33,7 @@ import { getNearbyRestaurants } from "../Services/PlacesApi";
 
 import RestaurantCardHorizontal from "../Components/RestaurantCardHorizontal";
 import RestaurantCardVertical from "../Components/RestaurantCardVertical";
+import { logAudit } from "../Logs/FileManager";
 
 /* =============================
    OPCIONES DE FILTRO
@@ -234,6 +235,12 @@ export default function HomeScreen({ navigation }) {
       if (!user) return;
 
       const userSnap = await getDoc(doc(db, "users", user.uid));
+      await logAudit({
+        action: "Se consulto nombre del usuario para inicio",
+        storage: "Firestore",
+        target: `users/${user.uid}`,
+        userId: user.uid,
+      });
       const profileName = userSnap.exists() ? userSnap.data().name : null;
       const fallbackName = user.displayName || user.email?.split("@")[0];
 
@@ -337,6 +344,13 @@ export default function HomeScreen({ navigation }) {
   );
 
   const snapshot = await getDocs(q);
+  await logAudit({
+    action: "Se consultaron restaurantes aprobados para inicio",
+    storage: "Firestore",
+    target: "restaurants",
+    detail: `status == approved; resultados: ${snapshot.size}`,
+    userId: getAuth().currentUser?.uid,
+  });
 
   return snapshot.docs.map((docItem) => {
     const data = docItem.data();
@@ -396,6 +410,13 @@ export default function HomeScreen({ navigation }) {
       coords.latitude,
       coords.longitude
     );
+    await logAudit({
+      action: "Se consultaron restaurantes cercanos",
+      storage: "Google Places API",
+      target: "nearbySearch",
+      detail: `resultados: ${googleRestaurants.length}`,
+      userId: getAuth().currentUser?.uid,
+    });
 
     const appRestaurants = await getApprovedRestaurantsFromFirestore();
 

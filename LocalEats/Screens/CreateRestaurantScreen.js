@@ -19,6 +19,7 @@ import * as ImagePicker from "expo-image-picker";
 import { auth, db } from "../firebaseConfig";
 import { collection, addDoc } from "firebase/firestore";
 import { LinearGradient } from "expo-linear-gradient";
+import { logAudit } from "../Logs/FileManager";
 
 const { width } = Dimensions.get("window");
 const GREEN = "#27AE60";
@@ -173,7 +174,7 @@ export default function CreateRestaurantScreen({ navigation }) {
           : `${item.day}: ${item.open || "?"} – ${item.close || "?"}`
       );
 
-      await addDoc(collection(db, "restaurants"), {
+      const docRef = await addDoc(collection(db, "restaurants"), {
         ownerId: user.uid,
         name,
         address,
@@ -197,6 +198,13 @@ export default function CreateRestaurantScreen({ navigation }) {
         directionsClicks: 0,
         totalReviews: 0,
         averageRating: 0,
+      });
+      await logAudit({
+        action: "Se agrego un restaurante",
+        storage: "Firestore",
+        target: `restaurants/${docRef.id}`,
+        detail: `nombre: ${name}; estado: pending`,
+        userId: user.uid,
       });
 
       Alert.alert("✅ Solicitud enviada", "Tu restaurante está en revisión. Lo activaremos pronto.", [

@@ -14,6 +14,7 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import { LineChart, BarChart } from "react-native-chart-kit";
 import { LinearGradient } from "expo-linear-gradient";
+import { logAudit } from "../Logs/FileManager";
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -45,6 +46,13 @@ export default function AnalyticsScreen({ navigation }) {
         where("ownerId", "==", user.uid)
       );
       const snapshot = await getDocs(q);
+      await logAudit({
+        action: "Se consultaron analiticas del restaurante del propietario",
+        storage: "Firestore",
+        target: "restaurants",
+        detail: `ownerId == ${user.uid}; resultados: ${snapshot.size}`,
+        userId: user.uid,
+      });
 
       if (!snapshot.empty) {
         setRestaurant(snapshot.docs[0].data());

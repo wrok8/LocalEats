@@ -22,6 +22,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import { LinearGradient } from "expo-linear-gradient";
+import { logAudit } from "../Logs/FileManager";
 
 const { width } = Dimensions.get("window");
 const GREEN = "#27AE60";
@@ -96,6 +97,12 @@ export default function RestaurantDetailScreen({ route, navigation }) {
 
       const restaurantRef = doc(db, "restaurants", restaurant.id);
       const snap = await getDoc(restaurantRef);
+      await logAudit({
+        action: "Se consulto detalle actualizado del restaurante",
+        storage: "Firestore",
+        target: `restaurants/${restaurant.id}`,
+        userId: getAuth().currentUser?.uid,
+      });
 
       if (snap.exists()) {
         const freshData = snap.data();
@@ -121,10 +128,23 @@ export default function RestaurantDetailScreen({ route, navigation }) {
 
       const restaurantRef = doc(db, "restaurants", restaurant.id);
       const snap = await getDoc(restaurantRef);
+      await logAudit({
+        action: "Se verifico restaurante antes de sumar vista",
+        storage: "Firestore",
+        target: `restaurants/${restaurant.id}`,
+        userId: getAuth().currentUser?.uid,
+      });
 
       if (snap.exists()) {
         await updateDoc(restaurantRef, {
           views: increment(1),
+        });
+        await logAudit({
+          action: "Se incremento contador de vistas",
+          storage: "Firestore",
+          target: `restaurants/${restaurant.id}`,
+          detail: "Campo modificado: views +1",
+          userId: getAuth().currentUser?.uid,
         });
       }
     } catch (error) {
@@ -140,6 +160,12 @@ export default function RestaurantDetailScreen({ route, navigation }) {
 
       const favoriteRef = doc(db, "users", user.uid, "favorites", restaurant.id);
       const favoriteSnap = await getDoc(favoriteRef);
+      await logAudit({
+        action: "Se verifico si el restaurante es favorito",
+        storage: "Firestore",
+        target: `users/${user.uid}/favorites/${restaurant.id}`,
+        userId: user.uid,
+      });
 
       setIsFavorite(favoriteSnap.exists());
     } catch (error) {
@@ -166,6 +192,12 @@ export default function RestaurantDetailScreen({ route, navigation }) {
       const restaurantRef = doc(db, "restaurants", restaurant.id);
 
       const favoriteSnap = await getDoc(favoriteRef);
+      await logAudit({
+        action: "Se consulto favorito antes de agregar",
+        storage: "Firestore",
+        target: `users/${user.uid}/favorites/${restaurant.id}`,
+        userId: user.uid,
+      });
 
       if (favoriteSnap.exists()) {
         setIsFavorite(true);
@@ -178,12 +210,32 @@ export default function RestaurantDetailScreen({ route, navigation }) {
         id: restaurant.id,
         savedAt: new Date(),
       });
+      await logAudit({
+        action: "Se agrego restaurante a favoritos del usuario",
+        storage: "Firestore",
+        target: `users/${user.uid}/favorites/${restaurant.id}`,
+        detail: `restaurante: ${restaurantData.name}`,
+        userId: user.uid,
+      });
 
       const restaurantSnap = await getDoc(restaurantRef);
+      await logAudit({
+        action: "Se consulto restaurante antes de actualizar favoritos",
+        storage: "Firestore",
+        target: `restaurants/${restaurant.id}`,
+        userId: user.uid,
+      });
 
       if (restaurantSnap.exists()) {
         await updateDoc(restaurantRef, {
           favoritesCount: increment(1),
+        });
+        await logAudit({
+          action: "Se incremento contador de favoritos",
+          storage: "Firestore",
+          target: `restaurants/${restaurant.id}`,
+          detail: "Campo modificado: favoritesCount +1",
+          userId: user.uid,
         });
       }
 

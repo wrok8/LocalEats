@@ -24,6 +24,8 @@ import {
 
 import { db } from "../firebaseConfig";
 import { LinearGradient } from "expo-linear-gradient";
+import { getAuth } from "firebase/auth";
+import { logAudit } from "../Logs/FileManager";
 
 const GREEN = "#27AE60";
 const DARK_GREEN = "#1A5C35";
@@ -52,6 +54,13 @@ export default function AdminRestaurantRequestsScreen({ navigation }) {
       );
 
       const snapshot = await getDocs(q);
+      await logAudit({
+        action: "Se consultaron solicitudes de restaurantes pendientes",
+        storage: "Firestore",
+        target: "restaurants",
+        detail: `status == pending; resultados: ${snapshot.size}`,
+        userId: getAuth().currentUser?.uid,
+      });
 
       const data = snapshot.docs.map((docItem) => ({
         id: docItem.id,
@@ -123,6 +132,13 @@ export default function AdminRestaurantRequestsScreen({ navigation }) {
       }
 
       await batch.commit();
+      await logAudit({
+        action: "Se aprobo restaurante y se actualizo rol del propietario",
+        storage: "Firestore",
+        target: `restaurants/${item.id}`,
+        detail: item.ownerId ? `ownerId: ${item.ownerId}; rol: owner` : "sin ownerId",
+        userId: getAuth().currentUser?.uid,
+      });
 
       Alert.alert(
         "Aprobado",
@@ -148,6 +164,13 @@ export default function AdminRestaurantRequestsScreen({ navigation }) {
 
       await updateDoc(doc(db, "restaurants", id), {
         status: "rejected",
+      });
+      await logAudit({
+        action: "Se rechazo restaurante",
+        storage: "Firestore",
+        target: `restaurants/${id}`,
+        detail: "Campo modificado: status = rejected",
+        userId: getAuth().currentUser?.uid,
       });
 
       Alert.alert("Rechazado", "El restaurante fue rechazado");

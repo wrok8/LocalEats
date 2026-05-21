@@ -26,6 +26,7 @@ import { db } from "../firebaseConfig";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { logAudit } from "../Logs/FileManager";
 
 
 const { width } = Dimensions.get("window");
@@ -36,6 +37,7 @@ const { width } = Dimensions.get("window");
 const ACCOUNT_MENU = [
   { icon: "⭐", label: "Mis favoritos", screen: "Favorites", color: "#FFF3CD" },
   { icon: "⚙️", label: "Configuración", screen: "Preferences", color: "#E8F4FD" },
+  { icon: "TXT", label: "Auditoria TXT", screen: "AuditLog", color: "#F0E6FF" },
   { icon: "🏪", label: "Registrar restaurante", screen: "CreateRestaurant", color: "#E8F8F0" },
 ];
 
@@ -80,6 +82,13 @@ export default function ProfileScreen({ navigation }) {
       const imageUri = result.assets[0].uri;
       const user = getAuth().currentUser;
       await updateDoc(doc(db, "users", user.uid), { photoURL: imageUri });
+      await logAudit({
+        action: "Se actualizo la foto de perfil",
+        storage: "Firestore",
+        target: `users/${user.uid}`,
+        detail: "Campo modificado: photoURL",
+        userId: user.uid,
+      });
       setUserData({ ...userData, photoURL: imageUri });
     }
   }
@@ -92,6 +101,12 @@ export default function ProfileScreen({ navigation }) {
       if (!user) return;
 
       const userSnap = await getDoc(doc(db, "users", user.uid));
+      await logAudit({
+        action: "Se consulto el perfil del usuario",
+        storage: "Firestore",
+        target: `users/${user.uid}`,
+        userId: user.uid,
+      });
 
       if (userSnap.exists()) {
         const data = userSnap.data();
@@ -120,9 +135,22 @@ export default function ProfileScreen({ navigation }) {
         style: "destructive",
         onPress: async () => {
           try {
+            const currentUserId = getAuth().currentUser?.uid;
             await signOut(getAuth());
+            await logAudit({
+              action: "Cierre de sesion",
+              storage: "Firebase Auth",
+              target: "auth/session",
+              userId: currentUserId,
+            });
             await AsyncStorage.removeItem("userEmail");
             await AsyncStorage.removeItem("userPassword");
+            await logAudit({
+              action: "Se eliminaron credenciales recordadas",
+              storage: "AsyncStorage",
+              target: "userEmail,userPassword",
+              userId: currentUserId,
+            });
             navigation.replace("Login");
           } catch (error) {
             Alert.alert("Error", "No se pudo cerrar sesión");
@@ -142,6 +170,13 @@ export default function ProfileScreen({ navigation }) {
       );
 
       const snapshot = await getDocs(q);
+      await logAudit({
+        action: "Se consultaron estadisticas de restaurantes del propietario",
+        storage: "Firestore",
+        target: "restaurants",
+        detail: `ownerId == ${uid}; resultados: ${snapshot.size}`,
+        userId: uid,
+      });
 
       let totalViews = 0;
       let totalDirections = 0;

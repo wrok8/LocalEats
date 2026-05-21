@@ -22,7 +22,7 @@ import {
 } from "firebase/firestore";
 
 import { db } from "../firebaseConfig";
-import { exportRestaurantProfileTxt } from "../Logs/FileManager";
+import { exportRestaurantProfileTxt, logAudit } from "../Logs/FileManager";
 
 const GREEN = "#27AE60";
 const DARK_GREEN = "#1A5C35";
@@ -63,6 +63,13 @@ export default function EditRestaurantScreen({ navigation }) {
       );
 
       const snapshot = await getDocs(q);
+      await logAudit({
+        action: "Se consultaron restaurantes del usuario",
+        storage: "Firestore",
+        target: "restaurants",
+        detail: `ownerId == ${user.uid}; resultados: ${snapshot.size}`,
+        userId: user.uid,
+      });
 
       const data = snapshot.docs.map((docItem) => ({
         id: docItem.id,
@@ -203,6 +210,13 @@ function RestaurantDetail({ item, onBack }) {
   async function handleExportProfile() {
     try {
       await exportRestaurantProfileTxt(item);
+      await logAudit({
+        action: "Se genero archivo TXT promocional del restaurante",
+        storage: "FileSystem",
+        target: "exports",
+        detail: `restaurante: ${item.name || item.id}`,
+        userId: getAuth().currentUser?.uid,
+      });
       Alert.alert("Listo", "La ficha del restaurante se generó correctamente");
     } catch (error) {
       console.log("Error generando ficha:", error);

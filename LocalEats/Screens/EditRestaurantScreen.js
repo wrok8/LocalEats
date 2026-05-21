@@ -28,6 +28,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import { LinearGradient } from "expo-linear-gradient";
+import { logAudit } from "../Logs/FileManager";
 
 const GREEN = "#27AE60";
 const DARK_GREEN = "#1A5C35";
@@ -66,6 +67,13 @@ export default function EditRestaurantScreen({ navigation }) {
         where("ownerId", "==", user.uid)
       );
       const snapshot = await getDocs(q);
+      await logAudit({
+        action: "Se consulto restaurante del propietario para editar",
+        storage: "Firestore",
+        target: "restaurants",
+        detail: `ownerId == ${user.uid}; resultados: ${snapshot.size}`,
+        userId: user.uid,
+      });
 
       if (!snapshot.empty) {
         const docData = snapshot.docs[0];
@@ -124,6 +132,13 @@ export default function EditRestaurantScreen({ navigation }) {
         types,
         opening_hours: schedule.split("\n").map((s) => s.trim()).filter(Boolean),
       });
+      await logAudit({
+        action: "Se actualizo informacion del restaurante",
+        storage: "Firestore",
+        target: `restaurants/${restaurantId}`,
+        detail: "Campos: name, phone, address, image, description, price_level, types, opening_hours",
+        userId: getAuth().currentUser?.uid,
+      });
       Alert.alert("✅ Guardado", "Restaurante actualizado correctamente", [
         { text: "OK", onPress: () => navigation?.goBack() },
       ]);
@@ -157,6 +172,13 @@ export default function EditRestaurantScreen({ navigation }) {
             const reviewsSnap = await getDocs(
               collection(db, "restaurants", restaurantId, "reviews")
             );
+            await logAudit({
+              action: "Se consultaron resenas antes de eliminar restaurante",
+              storage: "Firestore",
+              target: `restaurants/${restaurantId}/reviews`,
+              detail: `resultados: ${reviewsSnap.size}`,
+              userId: getAuth().currentUser?.uid,
+            });
 
             const batch = writeBatch(db);
 
@@ -167,6 +189,13 @@ export default function EditRestaurantScreen({ navigation }) {
             batch.delete(doc(db, "restaurants", restaurantId));
 
             await batch.commit();
+            await logAudit({
+              action: "Se elimino restaurante y sus resenas",
+              storage: "Firestore",
+              target: `restaurants/${restaurantId}`,
+              detail: `resenas eliminadas: ${reviewsSnap.size}`,
+              userId: getAuth().currentUser?.uid,
+            });
 
             Alert.alert("Restaurante eliminado", "Se eliminó correctamente", [
               { text: "OK", onPress: () => navigation?.goBack() },

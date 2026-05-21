@@ -21,6 +21,8 @@ import * as Location from "expo-location";
 
 import { getNearbyRestaurants } from "../Services/PlacesApi";
 import { getApprovedRestaurants } from "../Services/FirebaseRestaurantsApi";
+import { getAuth } from "firebase/auth";
+import { logAudit } from "../Logs/FileManager";
 
 const GOOGLE_MAPS_API_KEY =
   "AIzaSyB31oDUBv6iWG87Cco9YAju3MAKp01Tdqs";
@@ -71,6 +73,13 @@ export default function MapScreen({ navigation }) {
             loc.coords.latitude,
             loc.coords.longitude
           );
+        await logAudit({
+          action: "Se consultaron restaurantes cercanos para mapa",
+          storage: "Google Places API",
+          target: "nearbySearch",
+          detail: `resultados: ${googleData.length}`,
+          userId: getAuth().currentUser?.uid,
+        });
 
         // NORMALIZAR GOOGLE
         const normalizedGoogle =
@@ -90,6 +99,13 @@ export default function MapScreen({ navigation }) {
         // FIREBASE RESTAURANTS
         const firebaseData =
           await getApprovedRestaurants();
+        await logAudit({
+          action: "Se cargaron restaurantes aprobados para mapa",
+          storage: "Firestore",
+          target: "restaurants",
+          detail: `resultados: ${firebaseData.length}`,
+          userId: getAuth().currentUser?.uid,
+        });
 
         const mixedRestaurants = [
           ...normalizedGoogle,
@@ -196,6 +212,13 @@ export default function MapScreen({ navigation }) {
             increment(1)
         }
       );
+      await logAudit({
+        action: "Se incremento contador de como llegar",
+        storage: "Firestore",
+        target: `restaurants/${selectedRestaurant.id}`,
+        detail: "Campo modificado: directionsClicks +1",
+        userId: getAuth().currentUser?.uid,
+      });
     }
   } catch (error) {
     console.log(

@@ -22,7 +22,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import { LinearGradient } from "expo-linear-gradient";
-import { cacheFavorites, logError } from "../Logs/FileManager";
+import { cacheFavorites, logAudit, logError } from "../Logs/FileManager";
 
 const { width } = Dimensions.get("window");
 const GREEN = "#27AE60";
@@ -48,8 +48,22 @@ export default function FavoritesScreen({ navigation }) {
 
       const snap = await getDocs(collection(db, "users", user.uid, "favorites"));
       const data = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      await logAudit({
+        action: "Se consultaron favoritos del usuario",
+        storage: "Firestore",
+        target: `users/${user.uid}/favorites`,
+        detail: `resultados: ${snap.size}`,
+        userId: user.uid,
+      });
       setFavorites(data);
       await cacheFavorites(user.uid, data);
+      await logAudit({
+        action: "Se guardo cache local de favoritos",
+        storage: "FileSystem",
+        target: "cache/favorites.txt",
+        detail: `favoritos: ${data.length}`,
+        userId: user.uid,
+      });
     } catch (error) {
       console.log("Error cargando favoritos:", error);
       await logError("FavoritesScreen.loadFavorites", error);
@@ -76,10 +90,24 @@ export default function FavoritesScreen({ navigation }) {
             await deleteDoc(
               doc(db, "users", user.uid, "favorites", restaurantId)
             );
+            await logAudit({
+              action: "Se elimino favorito del usuario",
+              storage: "Firestore",
+              target: `users/${user.uid}/favorites/${restaurantId}`,
+              detail: `restaurante: ${name}`,
+              userId: user.uid,
+            });
 
             try {
               await updateDoc(doc(db, "restaurants", restaurantId), {
                 favoritesCount: increment(-1),
+              });
+              await logAudit({
+                action: "Se decremento contador de favoritos",
+                storage: "Firestore",
+                target: `restaurants/${restaurantId}`,
+                detail: "Campo modificado: favoritesCount -1",
+                userId: user.uid,
               });
             } catch (error) {
               console.log("No se pudo restar contador:", error);

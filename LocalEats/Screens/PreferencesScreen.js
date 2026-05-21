@@ -13,6 +13,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebaseConfig";
 import { LinearGradient } from "expo-linear-gradient";
+import { logAudit } from "../Logs/FileManager";
 
 // Preferencias locales de la cuenta y salida de sesion.
 export default function PreferencesScreen({ navigation }) {
@@ -28,6 +29,12 @@ export default function PreferencesScreen({ navigation }) {
   const loadPreferences = async () => {
     const savedTheme = await AsyncStorage.getItem("darkMode");
     const savedNotifications = await AsyncStorage.getItem("notifications");
+    await logAudit({
+      action: "Se consultaron preferencias locales",
+      storage: "AsyncStorage",
+      target: "darkMode,notifications",
+      userId: auth.currentUser?.uid,
+    });
 
     if (savedTheme !== null) setDarkMode(JSON.parse(savedTheme));
     if (savedNotifications !== null) setNotifications(JSON.parse(savedNotifications));
@@ -38,6 +45,13 @@ export default function PreferencesScreen({ navigation }) {
     const newValue = !darkMode;
     setDarkMode(newValue);
     await AsyncStorage.setItem("darkMode", JSON.stringify(newValue));
+    await logAudit({
+      action: "Se modifico preferencia de modo oscuro",
+      storage: "AsyncStorage",
+      target: "darkMode",
+      detail: `valor: ${newValue}`,
+      userId: auth.currentUser?.uid,
+    });
   };
 
   // Mantiene la preferencia de notificaciones en almacenamiento local.
@@ -45,6 +59,13 @@ export default function PreferencesScreen({ navigation }) {
     const newValue = !notifications;
     setNotifications(newValue);
     await AsyncStorage.setItem("notifications", JSON.stringify(newValue));
+    await logAudit({
+      action: "Se modifico preferencia de notificaciones",
+      storage: "AsyncStorage",
+      target: "notifications",
+      detail: `valor: ${newValue}`,
+      userId: auth.currentUser?.uid,
+    });
   };
 
   // Cierra sesion despues de confirmar con el usuario.
@@ -59,9 +80,22 @@ export default function PreferencesScreen({ navigation }) {
           style: "destructive",
           onPress: async () => {
             try {
+              const currentUserId = auth.currentUser?.uid;
               await signOut(auth);
+              await logAudit({
+                action: "Cierre de sesion",
+                storage: "Firebase Auth",
+                target: "auth/session",
+                userId: currentUserId,
+              });
               await AsyncStorage.removeItem("userEmail");
               await AsyncStorage.removeItem("userPassword");
+              await logAudit({
+                action: "Se eliminaron credenciales recordadas",
+                storage: "AsyncStorage",
+                target: "userEmail,userPassword",
+                userId: currentUserId,
+              });
               navigation.replace("Login");
             } catch (error) {
               Alert.alert("Error", "No se pudo cerrar sesión");

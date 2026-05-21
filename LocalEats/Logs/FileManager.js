@@ -8,6 +8,7 @@ export const PATHS = {
   cache: `${BASE_DIR}cache/`,
   exports: `${BASE_DIR}exports/`,
   errorLog: `${BASE_DIR}logs/errors.txt`,
+  auditLog: `${BASE_DIR}logs/audit_log.txt`,
   cacheFavorites: `${BASE_DIR}cache/favorites.txt`,
 };
 
@@ -27,6 +28,119 @@ export async function logInfo(context, message) {
   try {
     await appendLine(PATHS.errorLog, `[${timestamp()}] INFO [${context}] ${message}`);
   } catch (_) {}
+}
+
+// Guarda una accion o consulta importante en un archivo txt de auditoria local.
+export async function logAudit({
+  action,
+  storage = "Firestore",
+}) {
+  try {
+    const line = [
+      `[${timestamp()}]`,
+      `BASE: ${storage}`,
+      `ACCION: ${action}`,
+    ]
+      .filter(Boolean)
+      .join(" | ");
+
+    await appendLine(PATHS.auditLog, line);
+  } catch (error) {
+    console.warn("No se pudo escribir auditoria:", error);
+  }
+}
+
+export async function readAuditLog() {
+  try {
+    const info = await FileSystem.getInfoAsync(PATHS.auditLog);
+    if (!info.exists) return "Sin registros de auditoria.";
+    return await FileSystem.readAsStringAsync(PATHS.auditLog, {
+      encoding: FileSystem.EncodingType.UTF8,
+    });
+  } catch (_) {
+    return "No se pudo leer el log de auditoria.";
+  }
+}
+
+export async function readAuditEntries() {
+  try {
+    const raw = await readAuditLog();
+    if (!raw || raw.startsWith("Sin registros")) return [];
+
+    return raw
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line, index) => parseAuditLine(line, index))
+      .reverse()
+      .map((entry) => entry);
+  } catch (_) {
+    return [];
+  }
+}
+
+export async function deleteAuditEntry(entryToDelete) {
+  try {
+    const raw = await readAuditLog();
+    if (!raw || raw.startsWith("Sin registros")) return;
+
+    const lines = raw
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+
+    const updatedLines = lines.filter((line, index) => {
+      if (entryToDelete?.originalIndex !== undefined) {
+        return index !== entryToDelete.originalIndex;
+      }
+
+      return line !== entryToDelete?.raw;
+    });
+
+    await FileSystem.writeAsStringAsync(PATHS.auditLog, `${updatedLines.join("\n")}${updatedLines.length ? "\n" : ""}`, {
+      encoding: FileSystem.EncodingType.UTF8,
+    });
+  } catch (error) {
+    console.warn("No se pudo eliminar auditoria:", error);
+  }
+}
+
+export async function clearAuditLog() {
+  try {
+    await FileSystem.writeAsStringAsync(PATHS.auditLog, "", {
+      encoding: FileSystem.EncodingType.UTF8,
+    });
+    await logAudit({
+      action: "Se limpio el historial de auditoria",
+      storage: "FileSystem",
+      target: "logs/audit_log.txt",
+    });
+  } catch (error) {
+    console.warn("No se pudo limpiar auditoria:", error);
+  }
+}
+
+export async function shareAuditLog() {
+  try {
+    await ensureDirectory(PATHS.logs);
+    const info = await FileSystem.getInfoAsync(PATHS.auditLog);
+    if (!info.exists) {
+      await logAudit({
+        action: "Se creo el archivo de auditoria para compartir",
+        storage: "FileSystem",
+        target: "logs/audit_log.txt",
+      });
+    }
+
+    if (await Sharing.isAvailableAsync()) {
+      await Sharing.shareAsync(PATHS.auditLog, {
+        mimeType: "text/plain",
+        dialogTitle: "Compartir auditoria de LocalEats",
+      });
+    }
+  } catch (error) {
+    await logError("shareAuditLog", error);
+  }
 }
 
 // Guarda errores con contexto para poder revisarlos despues.
@@ -283,6 +397,30 @@ function timestamp() {
     minute: "2-digit",
     second: "2-digit",
   });
+}
+
+function parseAuditLine(line, index) {
+  const parts = line.split(" | ");
+  const date = parts[0]?.replace("[", "").replace("]", "") || "";
+  const entry = {
+    id: `${index}-${date}-${line.length}`,
+    number: index + 1,
+    originalIndex: index,
+    date,
+    storage: "",
+    action: line,
+    raw: line,
+  };
+
+  parts.slice(1).forEach((part) => {
+    const [key, ...valueParts] = part.split(": ");
+    const value = valueParts.join(": ");
+
+    if (key === "BASE") entry.storage = value;
+    if (key === "ACCION") entry.action = value;
+  });
+
+  return entry;
 }
 
 // Limpia el nombre para que sea seguro como archivo.

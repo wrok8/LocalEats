@@ -16,6 +16,7 @@ import AdminRestaurantRequestsScreen from "./Screens/AdminRestaurantRequestsScre
 import ReviewScreen from "./Screens/ReviewScreen";
 import ProfileScreen from "./Screens/ProfileScreen";
 import AnalyticsScreen from "./Screens/AnalyticsScreen";
+import AuditLogScreen from "./Screens/AuditLogScreen";
 
 /* NUEVAS SCREENS */
 import FavoritesScreen from "./Screens/FavoritesScreen";
@@ -113,6 +114,11 @@ export default function App() {
         <Stack.Screen
           name="Analytics"
           component={AnalyticsScreen}
+        />
+
+        <Stack.Screen
+          name="AuditLog"
+          component={AuditLogScreen}
         />
 
         <Stack.Screen

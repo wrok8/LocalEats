@@ -10,6 +10,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import { LinearGradient } from "expo-linear-gradient";
+import { logAudit } from "../Logs/FileManager";
 
 const GREEN = "#27AE60";
 const DARK_GREEN = "#1A5C35";
@@ -33,6 +34,13 @@ export default function ReviewScreen({ route, navigation }) {
     const q = query(reviewsRef, orderBy("createdAt", "desc"));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
+      logAudit({
+        action: "Se consultaron resenas del restaurante",
+        storage: "Firestore",
+        target: `restaurants/${restaurant.id}/reviews`,
+        detail: `resultados: ${snapshot.size}`,
+        userId: user?.uid,
+      });
       const docs = snapshot.docs.map((d) => ({
         id: d.id,
         source: "app",
@@ -66,6 +74,12 @@ export default function ReviewScreen({ route, navigation }) {
       const reviewRef = collection(db, "restaurants", restaurant.id, "reviews");
 
       const restSnap = await getDoc(restaurantRef);
+      await logAudit({
+        action: "Se consulto restaurante antes de guardar resena",
+        storage: "Firestore",
+        target: `restaurants/${restaurant.id}`,
+        userId: user.uid,
+      });
 
       if (!restSnap.exists()) {
         await setDoc(restaurantRef, {
@@ -77,6 +91,13 @@ export default function ReviewScreen({ route, navigation }) {
           totalRatingSum: rating,
           address: restaurant.address || restaurant.vicinity || "",
           source: restaurant.source || "google",
+        });
+        await logAudit({
+          action: "Se creo restaurante base desde una resena",
+          storage: "Firestore",
+          target: `restaurants/${restaurant.id}`,
+          detail: `rating inicial: ${rating}`,
+          userId: user.uid,
         });
       } else {
         const data = restSnap.data();
@@ -90,14 +111,28 @@ export default function ReviewScreen({ route, navigation }) {
           averageRating: newSum / newCount,
           rating: newSum / newCount,
         });
+        await logAudit({
+          action: "Se actualizaron metricas de resenas del restaurante",
+          storage: "Firestore",
+          target: `restaurants/${restaurant.id}`,
+          detail: `nuevo promedio: ${newSum / newCount}`,
+          userId: user.uid,
+        });
       }
 
-      await addDoc(reviewRef, {
+      const reviewDoc = await addDoc(reviewRef, {
         userId: user.uid,
         userName: user.displayName || user.email.split("@")[0],
         rating,
         comment: comment.trim(),
         createdAt: new Date(),
+      });
+      await logAudit({
+        action: "Se agrego una resena",
+        storage: "Firestore",
+        target: `restaurants/${restaurant.id}/reviews/${reviewDoc.id}`,
+        detail: `rating: ${rating}`,
+        userId: user.uid,
       });
 
       setComment("");
